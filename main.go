@@ -1,8 +1,10 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"net/http"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 // --------------------------------
@@ -13,28 +15,14 @@ import (
 // /notes/(id) PUT Modifie given note (by overwriting a record)
 // /notes/(id) DELETE Delete a particular note
 
-// TODO: need multiplexer
-
-// Authorization screen (login)
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Index screen: %s", r.URL.Path)
-}
-
-// Notes request handling
-func notesHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Notes management: %s", r.URL.Path)
-}
-
 func main() {
-	// Multiplexer routes requests
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", indexHandler)
-	mux.HandleFunc("/notes/", notesHandler)
-
+	router := httprouter.New()
+	router.GET("/", indexHandler)
+	router.GET("/notes", notesHandler)
+	router.GET("/notes/:note", notesHandler)
 	server := &http.Server{
 		Addr:    ":8080",
-		Handler: mux,
+		Handler: router,
 	}
-	server.ListenAndServe()
-
+	log.Fatal(server.ListenAndServe())
 }
