@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 )
 
@@ -17,8 +16,8 @@ import (
 // TODO: need multiplexer
 
 // Authorization screen (login)
-func authorizationHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Authorization screen: %s", r.URL.Path)
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Index screen: %s", r.URL.Path)
 }
 
 // Notes request handling
@@ -27,7 +26,15 @@ func notesHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/", authorizationHandler)
-	http.HandleFunc("/notes/", notesHandler)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	// Multiplexer routes requests
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", indexHandler)
+	mux.HandleFunc("/notes/", notesHandler)
+
+	server := &http.Server{
+		Addr:    ":8080",
+		Handler: mux,
+	}
+	server.ListenAndServe()
+
 }
