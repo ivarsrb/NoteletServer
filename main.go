@@ -3,26 +3,33 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 
-	"github.com/julienschmidt/httprouter"
+	"github.com/gorilla/mux"
 )
 
 // --------------------------------
 // REST Api
-// /notes/  GET Get the list of all available notes
-// /notes/(id)  GET Get a particular note
-// /notes/ POST Add new note
-// /notes/(id) PUT Modifie given note (by overwriting a record)
-// /notes/(id) DELETE Delete a particular note
+// api/notes/  GET Get the list of all available notes
+// api/notes/(id)  GET Get a particular note
+// api/notes/ POST Add new note
+// api/notes/(id) PUT Modifie given note (by overwriting a record)
+// api/notes/(id) DELETE Delete a particular note
 
 func main() {
-	router := httprouter.New()
-	router.GET("/", indexHandler)
-	router.GET("/notes", notesHandler)
-	router.GET("/notes/:note", notesHandler)
+	router := mux.NewRouter()
+	// REST api serving
+	router.HandleFunc("/api/notes", notesHandler)
+	// SPA serving
+	spa := spaHandler{staticPath: "templates", indexPath: "index.html"}
+	router.PathPrefix("/").Handler(spa)
+
 	server := &http.Server{
-		Addr:    ":8080",
-		Handler: router,
+		Handler:      router,
+		Addr:         ":8080",
+		WriteTimeout: 10 * time.Second,
+		ReadTimeout:  10 * time.Second,
 	}
+
 	log.Fatal(server.ListenAndServe())
 }

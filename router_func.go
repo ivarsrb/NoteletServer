@@ -1,18 +1,12 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
 	"net/http"
-
-	"github.com/julienschmidt/httprouter"
 )
 
-// Authorization screen (login)
-func indexHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprintf(w, "Index screen: %s", r.URL.Path)
-}
-
 // Notes request handling
-func notesHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	fmt.Fprintf(w, "Notes management: %s %s", r.URL.Path, ps.ByName("note"))
+func notesHandler(w http.ResponseWriter, r *http.Request) {
+	// an example API handler
+	json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 }
