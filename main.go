@@ -19,7 +19,9 @@ import (
 func main() {
 	router := mux.NewRouter()
 	// REST api serving
-	router.HandleFunc("/api/notes", notesHandler)
+	subrouter := router.PathPrefix("/api/notes").Subrouter()
+	subrouter.HandleFunc("/", notesHandler)
+	subrouter.HandleFunc("/{id:[0-9]+}", noteHandler)
 	// SPA serving
 	spa := spaHandler{staticPath: "templates", indexPath: "index.html"}
 	router.PathPrefix("/").Handler(spa)
