@@ -29,3 +29,16 @@ func init() {
 	}
 	log.Println("Database connection established")
 }
+
+// Create creates the database with given model
+func Create() {
+	statement, driverError := db.Prepare(notesQuery)
+	if driverError != nil {
+		log.Println(driverError)
+	}
+	// Create train table
+	_, statementError := statement.Exec()
+	if statementError != nil {
+		log.Println("Table already exists!")
+	}
+}

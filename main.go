@@ -6,7 +6,6 @@ import (
 )
 
 func main() {
-	// Initialize database (create tables if necessery)
-	database.Initialize()
+	database.Create()
 	server.Serve()
 }
