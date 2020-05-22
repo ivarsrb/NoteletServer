@@ -11,7 +11,7 @@ type notesResource struct {
 }
 
 // Model to ccreate notes database
-const notesQuery = `CREATE TABLE IF NOT EXISTS notes (
+const createNotesSQL = `CREATE TABLE IF NOT EXISTS notes (
 						ID INTEGER PRIMARY KEY AUTOINCREMENT,
 						STAMP DATE,
 						NOTE TEXT NOT NULL,
