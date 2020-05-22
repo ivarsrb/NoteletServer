@@ -43,7 +43,6 @@ func Create() {
 	// Create train table
 	_, err := db.Exec(createNotesSQL)
 	if err != nil {
-		log.Println(err)
-		// TODO: need to return error value and process it in main
+		log.Fatal(err)
 	}
 }
