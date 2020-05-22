@@ -1,3 +1,8 @@
+/*
+Package database implements database creation and manipulation
+routines.
+Database connection pool and first connection are established upon initialization.
+*/
 package database
 
 import (
