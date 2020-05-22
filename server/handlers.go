@@ -2,7 +2,6 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -55,10 +54,21 @@ func postNote(w http.ResponseWriter, r *http.Request) {
 
 // deleteNote delete a given note
 func deleteNote(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	// an example API handler
-	//json.NewEncoder(w).Encode(map[string]bool{"notes list": true})
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(fmt.Sprintf(`{"message": "delete note called, id %s"}`, vars["id"])))
+	var id int
+	var err error
+	// Identifier which note to delete.
+	// It should be integer (it is also checked at router with regexp)
+	if id, err = strconv.Atoi(mux.Vars(r)["id"]); err != nil {
+		log.Println("Handlers: 'id' should be an integer type")
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Content-Type", "text/plain")
+	// Check if there was something to delete
+	if database.DeleteNote(id) {
+		w.WriteHeader(http.StatusOK)
+	} else {
+		w.WriteHeader(http.StatusBadRequest)
+	}
 }

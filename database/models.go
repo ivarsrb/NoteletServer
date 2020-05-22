@@ -63,3 +63,22 @@ func GetNotesAll() []NoteResource {
 	}
 	return notes
 }
+
+// DeleteNote removes not with the given id from the database
+// Returns true if record existed before deletion, false - if did not
+func DeleteNote(id int) bool {
+	res, err := db.Exec("DELETE FROM notes WHERE id = ?", id)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// Note: not every driver may support this feature
+	rowCnt, err := res.RowsAffected()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if rowCnt != 1 {
+		return false
+	}
+	return true
+
+}
