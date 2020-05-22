@@ -33,3 +33,33 @@ func (n *NoteResource) Get(id int) bool {
 	}
 	return true
 }
+
+// GetNotesAll retrieves all notes from the database
+// and return as a notes resource slice
+func GetNotesAll() []NoteResource {
+	// Make an empty slice. Null slice like "var notes []NoteResource" will
+	// json marshal into 'null'.
+	notes := make([]NoteResource, 0)
+	//notes = append(notes, NoteResource{})
+	rows, err := db.Query("select id, timestamp, note, tags FROM notes")
+	if err != nil {
+		log.Fatal(err)
+	}
+	// Rows should be closed to avoid connection holding
+	defer rows.Close()
+	// Iterate over all selected rows and append to return slice
+	for rows.Next() {
+		var note NoteResource
+		err := rows.Scan(&note.ID, &note.Timestamp, &note.Note, &note.Tags)
+		if err != nil {
+			log.Fatal(err)
+		}
+		notes = append(notes, note)
+	}
+	// Check for abdnormal loop termination
+	err = rows.Err()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return notes
+}

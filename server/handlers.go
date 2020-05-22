@@ -13,11 +13,10 @@ import (
 
 // getNotes retrieve a list of all notes
 func getNotes(w http.ResponseWriter, r *http.Request) {
-	// an example API handler
-	//json.NewEncoder(w).Encode(map[string]bool{"notes list": true})
+	notes := database.GetNotesAll()
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"message": "get notes called"}`))
+	json.NewEncoder(w).Encode(notes)
 }
 
 // getNote retrieve a note with a requested id from the database
