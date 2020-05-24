@@ -60,6 +60,8 @@ func postNote(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, maxBodySize)
 	// Decode the json data we recieved
 	decoder := json.NewDecoder(r.Body)
+	// Dissalow any unsupported fields incoming from request
+	decoder.DisallowUnknownFields()
 	var note database.NoteResource
 	err := decoder.Decode(&note)
 	if err != nil {
