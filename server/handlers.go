@@ -53,6 +53,11 @@ func postNote(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnsupportedMediaType)
 		return
 	}
+	// Set limit for maximum body size
+	// A request body larger will result in
+	// Decode() returning a "http: request body too large" error.
+	const maxBodySize = 1048576
+	r.Body = http.MaxBytesReader(w, r.Body, maxBodySize)
 	// Decode the json data we recieved
 	decoder := json.NewDecoder(r.Body)
 	var note database.NoteResource
@@ -63,7 +68,7 @@ func postNote(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	//note.Add()
+	note.Add()
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
 }
