@@ -84,7 +84,11 @@ func GetNotesAll() []NoteResource {
 // DeleteNote removes note with the given id from the database
 // Returns true if record existed before deletion, false - if did not
 func DeleteNote(id int) bool {
-	res, err := db.Exec("DELETE FROM notes WHERE id = ?", id)
+	stmt, err := db.Prepare("DELETE FROM notes WHERE id = ?")
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := stmt.Exec(id)
 	if err != nil {
 		log.Fatal(err)
 	}
