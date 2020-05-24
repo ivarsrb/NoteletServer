@@ -26,9 +26,9 @@ func getNote(w http.ResponseWriter, r *http.Request) {
 	// Identifier which note to get.
 	// It should be integer (it is also checked at router with regexp)
 	if id, err = strconv.Atoi(mux.Vars(r)["id"]); err != nil {
-		log.Println("Handlers: 'id' should be an integer type")
+		log.Println("Server: 'id' should be an integer type")
 		w.Header().Set("Content-Type", "text/plain")
-		w.WriteHeader(http.StatusBadRequest)
+		http.Error(w, "ID of an unsupported type!", http.StatusBadRequest)
 		return
 	}
 	// Retrieve the record if possible
@@ -50,7 +50,7 @@ func postNote(w http.ResponseWriter, r *http.Request) {
 	if contentType != "application/json" {
 		log.Println("Server: request content type is not 'application/json'")
 		w.Header().Set("Content-Type", "text/plain")
-		w.WriteHeader(http.StatusUnsupportedMediaType)
+		http.Error(w, "JSON content type expected!", http.StatusUnsupportedMediaType)
 		return
 	}
 	// Set limit for maximum body size
@@ -84,7 +84,7 @@ func deleteNote(w http.ResponseWriter, r *http.Request) {
 	if id, err = strconv.Atoi(mux.Vars(r)["id"]); err != nil {
 		log.Println("Handlers: 'id' should be an integer type")
 		w.Header().Set("Content-Type", "text/plain")
-		w.WriteHeader(http.StatusBadRequest)
+		http.Error(w, "ID of an unsupported type!", http.StatusBadRequest)
 		return
 	}
 	w.Header().Set("Content-Type", "text/plain")
