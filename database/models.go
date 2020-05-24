@@ -34,6 +34,23 @@ func (n *NoteResource) Get(id int) bool {
 	return true
 }
 
+// Add adds this note to database and writes ID from just inserted record
+func (n *NoteResource) Add() {
+	stmt, err := db.Prepare("INSERT INTO notes(id, timestamp, note, tags ) VALUES (NULL,?,?,?)")
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := stmt.Exec(n.Timestamp, n.Note, n.Tags)
+	if err != nil {
+		log.Fatal(err)
+	}
+	lastID, err := res.LastInsertId()
+	if err != nil {
+		log.Fatal(err)
+	}
+	n.ID = int(lastID)
+}
+
 // GetNotesAll retrieves all notes from the database
 // and return as a notes resource slice
 func GetNotesAll() []NoteResource {
@@ -64,7 +81,7 @@ func GetNotesAll() []NoteResource {
 	return notes
 }
 
-// DeleteNote removes not with the given id from the database
+// DeleteNote removes note with the given id from the database
 // Returns true if record existed before deletion, false - if did not
 func DeleteNote(id int) bool {
 	res, err := db.Exec("DELETE FROM notes WHERE id = ?", id)
@@ -80,5 +97,4 @@ func DeleteNote(id int) bool {
 		return false
 	}
 	return true
-
 }

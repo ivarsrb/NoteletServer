@@ -43,13 +43,21 @@ func getNote(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// postNote add new note
+// postNote adds new note
 func postNote(w http.ResponseWriter, r *http.Request) {
-	// An example API handler
-	//json.NewEncoder(w).Encode(map[string]bool{"notes list": true})
-	w.Header().Set("Content-Type", "application/json")
+	// Decode the json data we recieved
+	decoder := json.NewDecoder(r.Body)
+	var note database.NoteResource
+	err := decoder.Decode(&note)
+	if err != nil {
+		log.Println(err)
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	note.Add()
+	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(`{"message": "create note called"}`))
 }
 
 // deleteNote delete a given note
