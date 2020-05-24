@@ -17,14 +17,14 @@ type spaHandler struct {
 	indexPath string
 }
 
-// ServeHTTP inspects the URL path to locate a file within the static dir
+// ServeHTTP inspects the URL path to locate a file within the web dir
 // on the SPA handler. If a file is found, it will be served. If not, the
 // file located at the index path on the SPA handler will be served..
 func (h spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// get the absolute path to prevent directory traversal
+	// Get the absolute path to prevent directory traversal
 	path, err := filepath.Abs(r.URL.Path)
 	if err != nil {
-		// if we failed to get the absolute path respond with a 400 bad request
+		// If we failed to get the absolute path respond with a 400 bad request
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}

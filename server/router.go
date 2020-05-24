@@ -18,7 +18,7 @@ func createRouter() *mux.Router {
 	apirouter.HandleFunc("/", postNote).Methods(http.MethodPost)
 	apirouter.HandleFunc("/{id:[0-9]+}", deleteNote).Methods(http.MethodDelete)
 	// SPA serving
-	spa := spaHandler{staticPath: "templates", indexPath: "index.html"}
+	spa := spaHandler{staticPath: "webj", indexPath: "index.html"}
 	router.PathPrefix("/").Handler(spa)
 	return router
 }
