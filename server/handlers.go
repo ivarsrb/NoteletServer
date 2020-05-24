@@ -45,6 +45,14 @@ func getNote(w http.ResponseWriter, r *http.Request) {
 
 // postNote adds new note
 func postNote(w http.ResponseWriter, r *http.Request) {
+	// Check for appropriate content type
+	contentType := r.Header.Get("Content-type")
+	if contentType != "application/json" {
+		log.Println("Server: request content type is not 'application/json'")
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(http.StatusUnsupportedMediaType)
+		return
+	}
 	// Decode the json data we recieved
 	decoder := json.NewDecoder(r.Body)
 	var note database.NoteResource
@@ -55,7 +63,7 @@ func postNote(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	note.Add()
+	//note.Add()
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
 }
