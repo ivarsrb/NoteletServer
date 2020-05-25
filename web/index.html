@@ -1,8 +1,41 @@
+<!DOCTYPE html>
 <html>
-  <head>
-    <title>Notelet v0.01</title>
-  </head>
-  <body>
-    <h4>Notes list</h4>
-  </body>
-</html>
+<head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Notelet</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.1"></script>
+</head>
+<body>
+    <div id="note_list">
+        <h2> Notes </h2>
+        <ul>
+            <li  v-for="note in notes">
+                {{ note.note }}
+            </li>
+        </ul>
+    </div>
+    <script>        
+        let app = new Vue({
+            el: '#note_list',
+            data: {
+                notes: []
+            },
+            // On page load
+            created: function() {
+                // Use the vue-resource $http client to fetch data from the /tasks route
+                this.$http.get('/api/notes/').then(response => {
+                    //alert(response.body)
+                    this.notes = response.body ? response.body : []
+                }, response => {
+                    alert("HTTP get error")
+                })
+            }
+        })
+    </script>
+</body>
+</html> 
