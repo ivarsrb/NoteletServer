@@ -1,26 +1,102 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
     <meta content="utf-8" http-equiv="encoding">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" 
-        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.2/css/bulma.min.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.1"></script>
     <title>Notelet</title>
 </head>
 <body>
-    <main role="main" class="container" id="note_list">
-        <h2> Notes </h2>
-        <ul>
-            <li  v-for="note in notes">
-                {{ note.note }}
-            </li>
-        </ul>
-    </main>
+    <section class="hero is-small is-primary is-bold">
+        <div class="hero-body has-text-centered">
+            <div class="container">
+                <h1 class="title">
+                    Notelet
+                </h1>
+                <h2 class="subtitle">
+                    Store and retrieve notes from anywhere
+                </h2>
+            </div>
+        </div>
+    </section>
+    <section class="section">
+        <div class="container">
+            <h1 class="title">Add new note</h1>
+            <form class="box">
+                <div class="field">
+                    <label class="label">Tags</label>
+                    <div class="control">
+                        <input class="input" type="text" placeholder="Tags here...">
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="label">Note</label>
+                    <div class="control">
+                      <textarea class="textarea" placeholder="Note here..."></textarea>
+                    </div>
+                </div>
+                <div class="field is-grouped">
+                    <div class="control">
+                        <button class="button is-link">Add</button>
+                    </div>
+                    <div class="control">
+                        <button class="button is-link is-light">Clear</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </section>
+    <section class="section">
+        <div class="container">
+            <h1 class="title">Search</h1>
+            <form class="box">
+                <div class="field has-addons">
+                    <div class="control">
+                        <input class="input" type="text" placeholder="Find a note">
+                    </div>
+                    <div class="control">
+                        <a class="button is-info">
+                            Search
+                        </a>
+                    </div>
+                  </div>
+            </form>
+        </div>
+    </section>
+    <!--- 
+    <section class="section">
+        <div class="container" id="note_list">
+            <div class="content is-medium">
+                <ul>
+                    <li v-for="note in notes">
+                        {{ note.note }}
+                        {{ note.timestamp }}
+                        {{ note.tags }}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+    -->
+    <section class="section">
+        <div class="container" id="note_list">
+            <div class="columns" v-for="note in notes">
+                <div class="column">
+                    <div class="content is-medium">
+                        {{ note.note }}
+                        {{ note.timestamp }}
+                        {{ note.tags }}
+                    </div>
+               </div> 
+            </div>            
+        </div>
+    </section>
     <script>        
         let app = new Vue({
             el: '#note_list',
