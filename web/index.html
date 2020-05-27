@@ -13,7 +13,6 @@
     <title>Notelet</title>
 </head>
 <body>
-    <section id="app">
     <section class="hero is-small is-primary is-bold">
         <div class="hero-body has-text-centered">
             <div class="container">
@@ -26,69 +25,72 @@
             </div>
         </div>
     </section>
-    <section class="section">
+    <section class="section" id="app">
         <div class="container">
-            <h1 class="title">Add new note</h1>
-            <form class="box" id="add_form"  action="" method="post" @submit.prevent="processForm">
-                <div class="field">
-                    <label class="label">Tags</label>
-                    <div class="control">
-                        <input class="input" name="tags_input_name" v-model="tags_input"  type="text" placeholder="Tags here...">
-                    </div>
-                </div>
-                <div class="field">
-                    <label class="label">Note</label>
-                    <div class="control">
-                        <textarea class="textarea" name="note_input_name" v-model="note_input" placeholder="Note here..."></textarea>
-                    </div>
-                </div>
-                <div class="field is-grouped">
-                    <div class="control">
-                        <button type="submit"  class="button  is-primary" name="add_button">Add</button>
-                    </div>
-                    <div class="control">
-                        <button type="button" class="button is-light" name="clear_button" @click="clearForm">Clear</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </section>
-    <section class="section">
-        <div class="container">
-            <h1 class="title">Search</h1>
-            <form class="box">
-                <div class="field has-addons">
-                    <div class="control">
-                        <input class="input" type="text" placeholder="Find a note">
-                    </div>
-                    <div class="control">
-                        <a class="button is-info">
-                            Search
-                        </a>
-                    </div>
-                  </div>
-            </form>
-        </div>
-    </section>
-    <section class="section">
-        <div class="container" id="note_list">
-            <div class="columns" v-for="note in notes">
-                <div class="column">
-                    <div class="content is-medium">
-                        <b> {{ note.id }} </b>
-                        {{ note.note }}
-                        {{ note.timestamp }}
-                        {{ note.tags }}
-                        <div class="control">
-                            <button type="button" class="button is-small is-danger" name="delete_button" 
-                                @click="deleteNote(note.id)">X</button>
+            <div class="columns">
+                <div class="column" name="list-column">
+
+                    <h1 class="title">Search</h1>
+                    <form class="box">
+                        <div class="field has-addons">
+                            <div class="control">
+                                <input class="input" type="text" placeholder="Find a note">
+                            </div>
+                            <div class="control">
+                                <a class="button is-info">
+                                    Search
+                                </a>
+                            </div>
                         </div>
-                    </div>
-               </div> 
-            </div>            
+                    </form>
+
+                    <div class="columns" v-for="note in notes">
+                        <div class="column">
+                            <div class="content is-medium">
+                                <b> {{ note.id }} </b>
+                                {{ note.note }}
+                                {{ note.timestamp }}
+                                {{ note.tags }}
+                                <div class="control">
+                                    <button type="button" class="button is-small is-danger" name="delete_button" 
+                                        @click="deleteNote(note.id)">X</button>
+                                </div>
+                            </div>
+                       </div> 
+                    </div>      
+
+                </div>
+                <div class="column" name="add-column">
+
+                    <h1 class="title">Add new note</h1>
+                    <form class="box" id="add_form"  action="" method="post" @submit.prevent="processForm">
+                        <div class="field">
+                            <label class="label">Tags</label>
+                            <div class="control">
+                                <input class="input" name="tags_input_name" v-model="tags_input"  type="text" placeholder="Tags here...">
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="label">Note</label>
+                            <div class="control">
+                                <textarea class="textarea" name="note_input_name" v-model="note_input" placeholder="Note here..."></textarea>
+                            </div>
+                        </div>
+                        <div class="field is-grouped">
+                            <div class="control">
+                                <button type="submit"  class="button  is-primary" name="add_button">Add</button>
+                            </div>
+                            <div class="control">
+                                <button type="button" class="button is-light" name="clear_button" @click="clearForm">Clear</button>
+                            </div>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
         </div>
-    </section>
-    </section>
+    </section>    
+
     <script> 
         // Input form
         const app = new Vue({
