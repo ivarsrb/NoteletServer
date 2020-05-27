@@ -33,13 +33,13 @@
                 <div class="field">
                     <label class="label">Tags</label>
                     <div class="control">
-                        <input class="input" name="tags_input" v-model="tags"  type="text" placeholder="Tags here...">
+                        <input class="input" name="tags_input_name" v-model="tags_input"  type="text" placeholder="Tags here...">
                     </div>
                 </div>
                 <div class="field">
                     <label class="label">Note</label>
                     <div class="control">
-                        <textarea class="textarea" name="note_input" v-model="note" placeholder="Note here..."></textarea>
+                        <textarea class="textarea" name="note_input_name" v-model="note_input" placeholder="Note here..."></textarea>
                     </div>
                 </div>
                 <div class="field is-grouped">
@@ -91,8 +91,8 @@
             // for data
             data: {
                 notes: [],
-                tags: '',
-                note: ''
+                tags_input: '',
+                note_input: ''
             },
             // On page load
             created: function() {
@@ -109,7 +109,7 @@
                     // Send post request
                     let date = new Date();
                     // Data to pst
-                    let note = { timestamp: date.toJSON(), tags: this.tags, note: this.note };
+                    let note = { timestamp: date.toJSON(), tags: this.tags_input, note: this.note_input };
                     let respString = JSON.stringify(note);
                     // POST /someUrl
                     this.$http.post('/api/notes/', respString,
@@ -126,8 +126,9 @@
                             // get body data
                             console.log(response.body);
                             // Clear form
-                            this.note = "";
-                            this.tags = "";
+                            this.note_input = "";
+                            this.tags_input = "";
+                            // Refresh screen
                             this.notes.push(note);
                         }, response => {
                             console.log(response.status);
@@ -135,8 +136,8 @@
                         });
                 },
                 clearForm: function() {
-                    this.note = "";
-                    this.tags = "";
+                    this.note_input = "";
+                    this.tags_input = "";
                 }
             }
         });
