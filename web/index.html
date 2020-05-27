@@ -44,10 +44,10 @@
                 </div>
                 <div class="field is-grouped">
                     <div class="control">
-                        <button type="submit"  class="button is-link" name="add_button">Add</button>
+                        <button type="submit"  class="button  is-primary" name="add_button">Add</button>
                     </div>
                     <div class="control">
-                        <button type="button" class="button is-link is-light" name="clear_button" @click="clearForm">Clear</button>
+                        <button type="button" class="button is-light" name="clear_button" @click="clearForm">Clear</button>
                     </div>
                 </div>
             </form>
@@ -75,9 +75,14 @@
             <div class="columns" v-for="note in notes">
                 <div class="column">
                     <div class="content is-medium">
+                        <b> {{ note.id }} </b>
                         {{ note.note }}
                         {{ note.timestamp }}
                         {{ note.tags }}
+                        <div class="control">
+                            <button type="button" class="button is-small is-danger" name="delete_button" 
+                                @click="deleteNote(note.id)">X</button>
+                        </div>
                     </div>
                </div> 
             </div>            
@@ -96,15 +101,19 @@
             },
             // On page load
             created: function() {
-                // Use the vue-resource $http client
-                this.$http.get('/api/notes/').then(response => {
-                    //alert(response.body)
-                    this.notes = response.body ? response.body : []
-                }, response => {
-                    this.notes = "Error"
-                })
+                this.getNotes();
             },
             methods: {
+                // send get request and add notes to data model
+                getNotes: function() {
+                    // Use the vue-resource $http client
+                    this.$http.get('/api/notes/').then(response => {
+                        //alert(response.body)
+                        this.notes = response.body ? response.body : [];
+                    }, response => {
+                        this.notes = "Error";
+                    })
+                },
                 processForm: function() {
                     // Send post request
                     let date = new Date();
@@ -128,16 +137,33 @@
                             // Clear form
                             this.note_input = "";
                             this.tags_input = "";
-                            // Refresh screen
-                            this.notes.push(note);
+                            // Refresh content
+                            this.getNotes();
                         }, response => {
                             console.log(response.status);
                             alert("Error in post callback")
-                        });
+                        }
+                    );
                 },
                 clearForm: function() {
                     this.note_input = "";
                     this.tags_input = "";
+                },
+                deleteNote: function(id) {
+                    // DELETE /someUrl
+                    this.$http.delete('/api/notes/' + id
+                        ).then(response => {
+                            // get status
+                            console.log(response.status);
+                            // get status text
+                            console.log(response.statusText);
+                            // Refresh content
+                            this.getNotes();
+                        }, response => {
+                            console.log(response.status);
+                            alert("Error in delete callback")
+                        }
+                    );
                 }
             }
         });
