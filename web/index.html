@@ -10,6 +10,8 @@
     <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://unpkg.com/lodash@4.16.0"></script>
     <title>Notelet</title>
 </head>
 <body>
@@ -46,7 +48,7 @@
 
                     <div class="columns" v-for="note in notes">
                         <div class="column">
-                            <div class="content is-medium">
+                            <div class="content is-medium"  @click="clickNote(note.id)">
                                 <b> {{ note.id }} </b>
                                 {{ note.note }}
                                 {{ note.timestamp }}
@@ -73,7 +75,8 @@
                         <div class="field">
                             <label class="label">Note</label>
                             <div class="control">
-                                <textarea class="textarea" name="note_input_name" v-model="note_input" placeholder="Note here..."></textarea>
+                                <textarea class="textarea" name="note_input_name" v-model="note_input" placeholder="Note here..."
+                                    @input="updateNote"></textarea>
                             </div>
                         </div>
                         <div class="field is-grouped">
@@ -85,10 +88,12 @@
                             </div>
                         </div>
                     </form>
+                    <h1 class="title">Preview</h1>
+                    <div class="content"  name="md-preview" v-html="compiledMarkdown"></div>
 
                 </div>
             </div>
-        </div>
+        </div>`
     </section>    
 
     <script> 
@@ -99,11 +104,16 @@
             data: {
                 notes: [],
                 tags_input: '',
-                note_input: ''
+                note_input: '',
             },
             // On page load
             created: function() {
                 this.getNotes();
+            },
+            computed: {
+                compiledMarkdown: function() {
+                    return marked(this.note_input,{gfm:true});
+                }
             },
             methods: {
                 // send get request and add notes to data model
@@ -151,6 +161,7 @@
                     this.note_input = "";
                     this.tags_input = "";
                 },
+
                 deleteNote: function(id) {
                     // DELETE /someUrl
                     this.$http.delete('/api/notes/' + id
@@ -166,6 +177,14 @@
                             alert("Error in delete callback")
                         }
                     );
+                },
+
+                updateNote: _.debounce(function(e) {
+                    this.note_input = e.target.value;
+                }, 300),
+
+                clickNote(id) {
+                    
                 }
             }
         });
