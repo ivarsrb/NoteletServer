@@ -50,7 +50,7 @@
                         <div class="column">
                             <div class="content is-medium"  @click="clickNote(note.id)">
                                 <b> {{ note.id }} </b>
-                                {{ note.note }}
+                                <div class="content" v-html="note.note"></div>
                                 {{ note.timestamp }}
                                 {{ note.tags }}
                                 <div class="control">
@@ -112,6 +112,7 @@
             },
             computed: {
                 compiledMarkdown: function() {
+                    // TODO: add sanitization
                     return marked(this.note_input,{gfm:true});
                 }
             },
@@ -122,6 +123,10 @@
                     this.$http.get('/api/notes/').then(response => {
                         //alert(response.body)
                         this.notes = response.body ? response.body : [];
+                        // Transform markdown text to html
+                        this.notes.forEach(function(part, index) {
+                            this[index].note = marked(part.note, {gfm:true});
+                        }, this.notes);
                     }, response => {
                         this.notes = "Error";
                     })
