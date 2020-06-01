@@ -2,12 +2,12 @@ package server
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/ivarsrb/NoteletServer/database"
+	"github.com/ivarsrb/NoteletServer/logger"
 )
 
 // getNotes retrieve a list of all notes
@@ -26,7 +26,7 @@ func getNote(w http.ResponseWriter, r *http.Request) {
 	// Identifier which note to get.
 	// It should be integer (it is also checked at router with regexp)
 	if id, err = strconv.Atoi(mux.Vars(r)["id"]); err != nil {
-		log.Println("Server: 'id' should be an integer type")
+		logger.Error.Println("Server: 'id' should be an integer type")
 		w.Header().Set("Content-Type", "text/plain")
 		http.Error(w, "ID of an unsupported type!", http.StatusBadRequest)
 		return
@@ -48,7 +48,7 @@ func postNote(w http.ResponseWriter, r *http.Request) {
 	// Check for appropriate content type
 	contentType := r.Header.Get("Content-type")
 	if contentType != "application/json" {
-		log.Println("Server: request content type is not 'application/json'")
+		logger.Error.Println("Server: request content type is not 'application/json'")
 		w.Header().Set("Content-Type", "text/plain")
 		http.Error(w, "JSON content type expected!", http.StatusUnsupportedMediaType)
 		return
@@ -65,7 +65,7 @@ func postNote(w http.ResponseWriter, r *http.Request) {
 	var note database.NoteResource
 	err := decoder.Decode(&note)
 	if err != nil {
-		log.Println(err)
+		logger.Error.Println(err)
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -82,7 +82,7 @@ func deleteNote(w http.ResponseWriter, r *http.Request) {
 	// Identifier which note to delete.
 	// It should be integer (it is also checked at router with regexp)
 	if id, err = strconv.Atoi(mux.Vars(r)["id"]); err != nil {
-		log.Println("Handlers: 'id' should be an integer type")
+		logger.Error.Println("Handlers: 'id' should be an integer type")
 		w.Header().Set("Content-Type", "text/plain")
 		http.Error(w, "ID of an unsupported type!", http.StatusBadRequest)
 		return

@@ -1,8 +1,9 @@
 package database
 
 import (
-	"log"
 	"time"
+
+	"github.com/ivarsrb/NoteletServer/logger"
 )
 
 // Model to ccreate notes database
@@ -28,7 +29,7 @@ func (n *NoteResource) Get(id int) bool {
 	err := db.QueryRow("SELECT id, timestamp, note, tags FROM notes where id = ?", id).
 		Scan(&n.ID, &n.Timestamp, &n.Note, &n.Tags)
 	if err != nil {
-		log.Println(err)
+		logger.Error.Println(err)
 		return false
 	}
 	return true
@@ -38,15 +39,15 @@ func (n *NoteResource) Get(id int) bool {
 func (n *NoteResource) Add() {
 	stmt, err := db.Prepare("INSERT INTO notes(id, timestamp, note, tags ) VALUES (NULL,?,?,?)")
 	if err != nil {
-		log.Fatal(err)
+		logger.Error.Fatal(err)
 	}
 	res, err := stmt.Exec(n.Timestamp, n.Note, n.Tags)
 	if err != nil {
-		log.Fatal(err)
+		logger.Error.Fatal(err)
 	}
 	lastID, err := res.LastInsertId()
 	if err != nil {
-		log.Fatal(err)
+		logger.Error.Fatal(err)
 	}
 	n.ID = int(lastID)
 }
@@ -60,7 +61,7 @@ func GetNotesAll() []NoteResource {
 	//notes = append(notes, NoteResource{})
 	rows, err := db.Query("select id, timestamp, note, tags FROM notes")
 	if err != nil {
-		log.Fatal(err)
+		logger.Error.Fatal(err)
 	}
 	// Rows should be closed to avoid connection holding
 	defer rows.Close()
@@ -69,14 +70,14 @@ func GetNotesAll() []NoteResource {
 		var note NoteResource
 		err := rows.Scan(&note.ID, &note.Timestamp, &note.Note, &note.Tags)
 		if err != nil {
-			log.Fatal(err)
+			logger.Error.Fatal(err)
 		}
 		notes = append(notes, note)
 	}
 	// Check for abdnormal loop termination
 	err = rows.Err()
 	if err != nil {
-		log.Fatal(err)
+		logger.Error.Fatal(err)
 	}
 	return notes
 }
@@ -86,16 +87,16 @@ func GetNotesAll() []NoteResource {
 func DeleteNote(id int) bool {
 	stmt, err := db.Prepare("DELETE FROM notes WHERE id = ?")
 	if err != nil {
-		log.Fatal(err)
+		logger.Error.Fatal(err)
 	}
 	res, err := stmt.Exec(id)
 	if err != nil {
-		log.Fatal(err)
+		logger.Error.Fatal(err)
 	}
 	// Note: not every driver may support this feature
 	rowCnt, err := res.RowsAffected()
 	if err != nil {
-		log.Fatal(err)
+		logger.Error.Fatal(err)
 	}
 	if rowCnt != 1 {
 		return false

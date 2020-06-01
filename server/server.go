@@ -6,9 +6,10 @@ package server
 
 import (
 	"flag"
-	"log"
 	"net/http"
 	"time"
+
+	"github.com/ivarsrb/NoteletServer/logger"
 )
 
 // config stores server confguration settings
@@ -36,7 +37,8 @@ func Serve() {
 		Addr:         cfg.addr,
 		WriteTimeout: 10 * time.Second,
 		ReadTimeout:  10 * time.Second,
+		ErrorLog:     logger.Error,
 	}
-	log.Printf("Serving on '%s' ...", cfg.addr)
-	log.Fatal(server.ListenAndServe())
+	logger.Info.Printf("Serving on '%s' ...", cfg.addr)
+	logger.Error.Fatal(server.ListenAndServe())
 }
