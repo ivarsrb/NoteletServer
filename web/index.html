@@ -97,6 +97,7 @@
     </section>    
 
     <script> 
+        const api_path = '/api/notes';
         // Input form
         const app = new Vue({
             el: '#app',
@@ -120,7 +121,7 @@
                 // send get request and add notes to data model
                 getNotes: function() {
                     // Use the vue-resource $http client
-                    this.$http.get('/api/notes/').then(response => {
+                    this.$http.get(api_path).then(response => {
                         
                         //alert(response.body)
                         this.notes = (response.headers.get('Content-Type') == "application/json" && Array.isArray(response.body)) ? 
@@ -141,7 +142,7 @@
                     let note = { timestamp: date.toJSON(), tags: this.tags_input, note: this.note_input };
                     let respString = JSON.stringify(note);
                     // POST /someUrl
-                    this.$http.post('/api/notes/', respString,
+                    this.$http.post(api_path, respString,
                         {headers: {
                             'Content-Type': 'application/json'
                         }}
@@ -172,7 +173,7 @@
 
                 deleteNote: function(id) {
                     // DELETE /someUrl
-                    this.$http.delete('/api/notes/' + id
+                    this.$http.delete(api_path + '/' + id
                         ).then(response => {
                             // get status
                             console.log(response.status);
