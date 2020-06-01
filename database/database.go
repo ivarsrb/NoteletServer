@@ -22,7 +22,7 @@ const (
 var db *sql.DB
 
 func init() {
-	// Pprepares the database abstraction for later use
+	// Prepares the database abstraction for later use
 	// The first actual connection to the underlying datastore will
 	// be established lazily, when it’s needed for the first time.
 	var err error
