@@ -1,97 +1,98 @@
 package server
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	"github.com/ivarsrb/NoteletServer/database"
 	"github.com/ivarsrb/NoteletServer/logger"
 )
 
 // getNotes retrieve a list of all notes
-func getNotes(w http.ResponseWriter, r *http.Request) {
+func getNotes(c *gin.Context) {
 	notes := database.GetNotesAll()
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(notes)
+	//c.Header("Content-Type", "application/json")
+	c.JSON(http.StatusOK, notes)
 }
 
 // getNote retrieve a note with a requested id from the database
 // and send it back as a json
-func getNote(w http.ResponseWriter, r *http.Request) {
+func getNote(c *gin.Context) {
 	var id int
 	var err error
 	// Identifier which note to get.
-	// It should be integer (it is also checked at router with regexp)
-	if id, err = strconv.Atoi(mux.Vars(r)["id"]); err != nil {
+	// It should be integer
+	if id, err = strconv.Atoi(c.Param("id")); err != nil {
 		logger.Error.Println("Server: 'id' should be an integer type")
-		w.Header().Set("Content-Type", "text/plain")
-		http.Error(w, "ID of an unsupported type!", http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID of an unsupported type!"})
 		return
 	}
 	// Retrieve the record if possible
 	var note database.NoteResource
 	if note.Get(id) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(note)
+		c.JSON(http.StatusOK, note)
 	} else {
-		w.Header().Set("Content-Type", "text/plain")
-		w.WriteHeader(http.StatusNotFound)
+		c.AbortWithStatus(http.StatusNotFound)
 	}
 }
 
 // postNote adds new note
-func postNote(w http.ResponseWriter, r *http.Request) {
+func postNote(c *gin.Context) {
 	// Check for appropriate content type
-	contentType := r.Header.Get("Content-type")
+	contentType := c.Request.Header.Get("Content-type")
 	if contentType != "application/json" {
 		logger.Error.Println("Server: request content type is not 'application/json'")
-		w.Header().Set("Content-Type", "text/plain")
-		http.Error(w, "JSON content type expected!", http.StatusUnsupportedMediaType)
+		c.JSON(http.StatusUnsupportedMediaType, gin.H{"error": "JSON content type expected!"})
 		return
 	}
-	// Set limit for maximum body size
-	// A request body larger will result in
-	// Decode() returning a "http: request body too large" error.
-	const maxBodySize = 1048576
-	r.Body = http.MaxBytesReader(w, r.Body, maxBodySize)
-	// Decode the json data we recieved
-	decoder := json.NewDecoder(r.Body)
-	// Dissalow any unsupported fields incoming from request
-	decoder.DisallowUnknownFields()
+	/*
+		// Set limit for maximum body size
+		// A request body larger will result in
+		// Decode() returning a "http: request body too large" error.
+		const maxBodySize = 1048576
+		r.Body = http.MaxBytesReader(w, r.Body, maxBodySize)
+		// Decode the json data we recieved
+		decoder := json.NewDecoder(r.Body)
+		// Dissalow any unsupported fields incoming from request
+		decoder.DisallowUnknownFields()
+		var note database.NoteResource
+		err := decoder.Decode(&note)
+		if err != nil {
+			logger.Error.Println(err)
+			w.Header().Set("Content-Type", "text/plain")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}*/
 	var note database.NoteResource
-	err := decoder.Decode(&note)
-	if err != nil {
-		logger.Error.Println(err)
-		w.Header().Set("Content-Type", "text/plain")
-		w.WriteHeader(http.StatusBadRequest)
+	if err := c.ShouldBindJSON(&note); err != nil {
+		logger.Error.Println("Server:" + err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
 	note.Add()
-	w.Header().Set("Content-Type", "text/plain")
-	w.WriteHeader(http.StatusCreated)
+	//w.Header().Set("Content-Type", "text/plain")
+	//w.WriteHeader(http.StatusCreated)
+	c.Status(http.StatusCreated)
 }
 
 // deleteNote delete a given note
-func deleteNote(w http.ResponseWriter, r *http.Request) {
+func deleteNote(c *gin.Context) {
 	var id int
 	var err error
 	// Identifier which note to delete.
-	// It should be integer (it is also checked at router with regexp)
-	if id, err = strconv.Atoi(mux.Vars(r)["id"]); err != nil {
-		logger.Error.Println("Handlers: 'id' should be an integer type")
-		w.Header().Set("Content-Type", "text/plain")
-		http.Error(w, "ID of an unsupported type!", http.StatusBadRequest)
+	// It should be integer
+	if id, err = strconv.Atoi(c.Param("id")); err != nil {
+		logger.Error.Println("Server: 'id' should be an integer type")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID of an unsupported type!"})
 		return
 	}
-	w.Header().Set("Content-Type", "text/plain")
+	//w.Header().Set("Content-Type", "text/plain")
 	// Check if there was something to delete
 	if database.DeleteNote(id) {
-		w.WriteHeader(http.StatusOK)
+		c.Status(http.StatusOK)
 	} else {
-		w.WriteHeader(http.StatusBadRequest)
+		c.AbortWithStatus(http.StatusNotFound)
 	}
 }

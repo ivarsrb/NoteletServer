@@ -17,8 +17,8 @@ const createNotesSQL = `CREATE TABLE IF NOT EXISTS notes (
 // NoteResource is the model for holding notes information
 type NoteResource struct {
 	ID        int       `json:"id"`
-	Timestamp time.Time `json:"timestamp"`
-	Note      string    `json:"note"`
+	Timestamp time.Time `json:"timestamp" binding:"required"`
+	Note      string    `json:"note" binding:"required"`
 	Tags      string    `json:"tags"`
 }
 

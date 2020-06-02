@@ -5,40 +5,51 @@ Server configuration is read from command line parameters upon initialization.
 package server
 
 import (
-	"flag"
-	"net/http"
-	"time"
+	"log"
+	"os"
 
-	"github.com/ivarsrb/NoteletServer/logger"
+	"github.com/gin-gonic/contrib/static"
+	"github.com/gin-gonic/gin"
+
+	// For hosting on Heroku
+	_ "github.com/heroku/x/hmetrics/onload"
 )
-
-// config stores server confguration settings
-type config struct {
-	// Network address
-	addr string
-	// Path to static web files
-	staticPath string
-}
-
-var cfg config
-
-func init() {
-	// Define configuration flags, used to configure the system upon execution
-	flag.StringVar(&cfg.addr, "addr", ":8080", "HTTP network address")
-	flag.StringVar(&cfg.staticPath, "static", "web", "Path to static web files")
-	flag.Parse()
-}
 
 // Serve creates and listne for requests
 func Serve() {
-	router := createRouter()
-	server := &http.Server{
-		Handler:      router,
-		Addr:         cfg.addr,
-		WriteTimeout: 10 * time.Second,
-		ReadTimeout:  10 * time.Second,
-		ErrorLog:     logger.Error,
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Fatal("$PORT must be set")
 	}
-	logger.Info.Printf("Serving on '%s' ...", cfg.addr)
-	logger.Error.Fatal(server.ListenAndServe())
+
+	router := gin.New()
+	// Global middleware
+	// Logger middleware will write the logs to gin.DefaultWriter even if you set with GIN_MODE=release.
+	// By default gin.DefaultWriter = os.Stdout
+	router.Use(gin.Logger())
+	// Recovery middleware recovers from any panics and writes a 500 if there was one.
+	router.Use(gin.Recovery())
+
+	// Serve frontend static files
+	router.Use(static.Serve("/", static.LocalFile("./web", true)))
+
+	// Setup route group for the API
+	api := router.Group("/api")
+	api.GET("/notes", getNotes)
+	api.GET("/notes/:id", getNote)
+	api.POST("/notes", postNote)
+	api.DELETE("/notes/:id", deleteNote)
+	router.Run(":" + port)
+	/*
+		router := createRouter()
+		server := &http.Server{
+			Handler:      router,
+			Addr:         cfg.addr,
+			WriteTimeout: 10 * time.Second,
+			ReadTimeout:  10 * time.Second,
+			ErrorLog:     logger.Error,
+		}
+		logger.Info.Printf("Serving on '%s' ...", cfg.addr)
+		logger.Error.Fatal(server.ListenAndServe())
+	*/
 }

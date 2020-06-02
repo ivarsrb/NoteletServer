@@ -122,9 +122,8 @@
                 getNotes: function() {
                     // Use the vue-resource $http client
                     this.$http.get(api_path).then(response => {
-                        
-                        //alert(response.body)
-                        this.notes = (response.headers.get('Content-Type') == "application/json" && Array.isArray(response.body)) ? 
+                        const contentType = response.headers.get("content-type");
+                        this.notes = (contentType && contentType.indexOf("application/json") !== -1 && Array.isArray(response.body)) ? 
                             response.body : [];
                         // Transform markdown text to html
                         this.notes.forEach(function(part, index) {
