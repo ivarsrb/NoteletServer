@@ -13,9 +13,6 @@ import (
 	"time"
 
 	"github.com/ivarsrb/NoteletServer/logger"
-
-	// For hosting on Heroku
-	_ "github.com/heroku/x/hmetrics/onload"
 )
 
 // Run creates and and starts http server

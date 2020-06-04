@@ -1,4 +1,4 @@
-package server
+package notes
 
 import (
 	"net/http"
@@ -9,16 +9,16 @@ import (
 	"github.com/ivarsrb/NoteletServer/logger"
 )
 
-// getNotes retrieve a list of all notes
-func getNotes(c *gin.Context) {
+// GetNotes retrieve a list of all notes
+func GetNotes(c *gin.Context) {
 	notes := database.GetNotesAll()
 	//c.Header("Content-Type", "application/json")
 	c.JSON(http.StatusOK, notes)
 }
 
-// getNote retrieve a note with a requested id from the database
+// GetNote retrieve a note with a requested id from the database
 // and send it back as a json
-func getNote(c *gin.Context) {
+func GetNote(c *gin.Context) {
 	var id int
 	var err error
 	// Identifier which note to get.
@@ -37,8 +37,8 @@ func getNote(c *gin.Context) {
 	}
 }
 
-// postNote adds new note
-func postNote(c *gin.Context) {
+// PostNote adds new note
+func PostNote(c *gin.Context) {
 	// Check for appropriate content type
 	contentType := c.Request.Header.Get("Content-type")
 	if contentType != "application/json" {
@@ -77,8 +77,8 @@ func postNote(c *gin.Context) {
 	c.Status(http.StatusCreated)
 }
 
-// deleteNote delete a given note
-func deleteNote(c *gin.Context) {
+// DeleteNote delete a given note
+func DeleteNote(c *gin.Context) {
 	var id int
 	var err error
 	// Identifier which note to delete.
