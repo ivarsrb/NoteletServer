@@ -7,5 +7,5 @@ import (
 
 func main() {
 	database.Create()
-	server.Serve()
+	server.Run()
 }
