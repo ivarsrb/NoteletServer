@@ -1,4 +1,4 @@
-package notes
+package server
 
 import (
 	"net/http"
@@ -7,6 +7,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ivarsrb/NoteletServer/database"
 	"github.com/ivarsrb/NoteletServer/logger"
+
+	// remove this
+	_ "github.com/ivarsrb/NoteletServer/storage"
 )
 
 // GetNotes retrieve a list of all notes

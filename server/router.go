@@ -2,7 +2,6 @@ package server
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/ivarsrb/NoteletServer/notes"
 )
 
 func newRouter() *gin.Engine {
@@ -23,10 +22,10 @@ func newRouter() *gin.Engine {
 	{
 		// Authorization middleware
 		// api.Use(AuthRequired())
-		api.GET("/notes", notes.GetNotes)
-		api.GET("/notes/:id", notes.GetNote)
-		api.POST("/notes", notes.PostNote)
-		api.DELETE("/notes/:id", notes.DeleteNote)
+		api.GET("/notes", GetNotes)
+		api.GET("/notes/:id", GetNote)
+		api.POST("/notes", PostNote)
+		api.DELETE("/notes/:id", DeleteNote)
 	}
 
 	return router
