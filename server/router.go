@@ -1,6 +1,7 @@
 package server
 
 import (
+	limits "github.com/gin-contrib/size"
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,6 +13,8 @@ func newRouter() *gin.Engine {
 	router.Use(gin.Logger())
 	// Recovery middleware recovers from any panics and writes a 500 if there was one.
 	router.Use(gin.Recovery())
+	const maxBodySize = 1048576
+	router.Use(limits.RequestSizeLimiter(maxBodySize))
 	// Serve frontend static files
 	//router.Use(static.Serve("/", static.LocalFile("./web", true)))
 	// This may have problems when we need js files served, look in github help for other examples

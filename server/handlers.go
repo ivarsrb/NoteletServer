@@ -53,24 +53,7 @@ func postNote(c *gin.Context) {
 		c.JSON(http.StatusUnsupportedMediaType, gin.H{"error": "JSON content type expected!"})
 		return
 	}
-	/*
-		// Set limit for maximum body size
-		// A request body larger will result in
-		// Decode() returning a "http: request body too large" error.
-		const maxBodySize = 1048576
-		r.Body = http.MaxBytesReader(w, r.Body, maxBodySize)
-		// Decode the json data we recieved
-		decoder := json.NewDecoder(r.Body)
-		// Dissalow any unsupported fields incoming from request
-		decoder.DisallowUnknownFields()
-		var note database.NoteResource
-		err := decoder.Decode(&note)
-		if err != nil {
-			logger.Error.Println(err)
-			w.Header().Set("Content-Type", "text/plain")
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}*/
+
 	var note notes.Note
 	if err = c.ShouldBindJSON(&note); err != nil {
 		logger.Error.Println("Server: ", err)
