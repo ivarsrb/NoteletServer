@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/ivarsrb/NoteletServer/notes"
+
 	// To initialize sqlite3 driver
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -58,7 +59,49 @@ func createDatabase(db *sql.DB) error {
 	return nil
 }
 
-// SelectNotes is ....
+// SelectNotes retrieves all notes from the database
+// and return as a notes resource slice
 func (s *SQLiteStorage) SelectNotes() ([]notes.Note, error) {
-	return nil, nil
+	// Make an empty slice. Null slice like "var notes []NoteResource" will
+	// json marshal into 'null'.
+	noteList := make([]notes.Note, 0)
+	rows, err := s.db.Query("select id, timestamp, note, tags FROM notes")
+	if err != nil {
+		//logger.Error.Fatal(err)
+		return nil, err
+	}
+	// Rows should be closed to avoid connection holding
+	defer rows.Close()
+	// Iterate over all selected rows and append to return slice
+	for rows.Next() {
+		var note notes.Note
+		err := rows.Scan(&note.ID, &note.Timestamp, &note.Note, &note.Tags)
+		if err != nil {
+			//logger.Error.Fatal(err)
+			return nil, err
+		}
+		noteList = append(noteList, note)
+	}
+	// Check for abdnormal loop termination
+	err = rows.Err()
+	if err != nil {
+		//logger.Error.Fatal(err)
+		return nil, err
+	}
+	return noteList, nil
+}
+
+// SelectNote ...
+func (s *SQLiteStorage) SelectNote(id int) (notes.Note, error) {
+	return notes.Note{}, nil
+}
+
+// InsertNote ...
+func (s *SQLiteStorage) InsertNote() error {
+	return nil
+}
+
+// DeleteNote ...
+func (s *SQLiteStorage) DeleteNote(id int) error {
+	return nil
 }

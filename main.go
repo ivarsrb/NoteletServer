@@ -1,14 +1,22 @@
 package main
 
 import (
-	"github.com/ivarsrb/NoteletServer/database"
+	"log"
+
 	"github.com/ivarsrb/NoteletServer/server"
+	"github.com/ivarsrb/NoteletServer/storage"
 
 	// For hosting on Heroku
 	_ "github.com/heroku/x/hmetrics/onload"
 )
 
 func main() {
-	database.Create()
+	var err error
+	// TODO maybe return storage object here and pass on rather
+	// than store it clobaly in storage package
+	err = storage.New(storage.SQLite)
+	if err != nil {
+		log.Fatal(err)
+	}
 	server.Run()
 }

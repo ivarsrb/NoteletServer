@@ -8,14 +8,17 @@ import (
 	"github.com/ivarsrb/NoteletServer/database"
 	"github.com/ivarsrb/NoteletServer/logger"
 
-	// remove this
-	_ "github.com/ivarsrb/NoteletServer/storage"
+	"github.com/ivarsrb/NoteletServer/storage"
 )
 
 // GetNotes retrieve a list of all notes
 func GetNotes(c *gin.Context) {
-	notes := database.GetNotesAll()
-	//c.Header("Content-Type", "application/json")
+	notes, err := storage.DB.SelectNotes()
+	if err != nil {
+		logger.Error.Println("Server: error retrieving notes!", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Cannot retrieve note list"})
+		return
+	}
 	c.JSON(http.StatusOK, notes)
 }
 
@@ -28,7 +31,7 @@ func GetNote(c *gin.Context) {
 	// It should be integer
 	if id, err = strconv.Atoi(c.Param("id")); err != nil {
 		logger.Error.Println("Server: 'id' should be an integer type")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ID of an unsupported type!"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID of an unsupported type"})
 		return
 	}
 	// Retrieve the record if possible

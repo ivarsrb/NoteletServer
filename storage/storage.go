@@ -30,7 +30,7 @@ func New(t Type) error {
 	//var err error
 	switch t {
 	case SQLite:
-		//DB, err = NewSQLite("./notelet.db")
+		DB, err = NewSQLite("./notelet.db")
 		if err != nil {
 			return err
 		}
