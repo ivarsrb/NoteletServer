@@ -18,7 +18,7 @@ var (
 
 func init() {
 	// Currently configured to standard output
-	Info = log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
+	Info = log.New(os.Stdout, "INFO ", log.Ldate|log.Ltime)
 	// Currently configured to standard error output
-	Error = log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+	Error = log.New(os.Stderr, "ERROR ", log.Ldate|log.Ltime|log.Lshortfile)
 }

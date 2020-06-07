@@ -5,8 +5,8 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/ivarsrb/NoteletServer/database"
 	"github.com/ivarsrb/NoteletServer/logger"
+	"github.com/ivarsrb/NoteletServer/notes"
 
 	"github.com/ivarsrb/NoteletServer/storage"
 )
@@ -45,6 +45,7 @@ func getNote(c *gin.Context) {
 
 // postNote adds new note
 func postNote(c *gin.Context) {
+	var err error
 	// Check for appropriate content type
 	contentType := c.Request.Header.Get("Content-type")
 	if contentType != "application/json" {
@@ -70,16 +71,18 @@ func postNote(c *gin.Context) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}*/
-	var note database.NoteResource
-	if err := c.ShouldBindJSON(&note); err != nil {
-		logger.Error.Println("Server:" + err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var note notes.Note
+	if err = c.ShouldBindJSON(&note); err != nil {
+		logger.Error.Println("Server: ", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Unable to parse recieved json"})
 		return
 	}
-
-	note.Add()
-	//w.Header().Set("Content-Type", "text/plain")
-	//w.WriteHeader(http.StatusCreated)
+	err = storage.DB.InsertNote(&note)
+	if err != nil {
+		logger.Error.Println("Server: error inserting a note .", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to add the not"})
+		return
+	}
 	c.Status(http.StatusCreated)
 }
 
@@ -94,11 +97,11 @@ func deleteNote(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ID of an unsupported type!"})
 		return
 	}
-	//w.Header().Set("Content-Type", "text/plain")
-	// Check if there was something to delete
-	if database.DeleteNote(id) {
-		c.Status(http.StatusOK)
+	err = storage.DB.DeleteNote(id)
+	if err != nil {
+		logger.Error.Println("Server: error deleting a note.", err)
+		c.JSON(http.StatusNotFound, gin.H{"error": "Unable to delete a record with the given id"})
 	} else {
-		c.AbortWithStatus(http.StatusNotFound)
+		c.Status(http.StatusOK)
 	}
 }

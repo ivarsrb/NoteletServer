@@ -15,7 +15,7 @@ const (
 // Storage is an interface for possible databases that could be used.
 // They all should implement this interface.
 type Storage interface {
-	InsertNote() error
+	InsertNote(note *notes.Note) error
 	SelectNote(int) (notes.Note, error)
 	SelectNotes() ([]notes.Note, error)
 	DeleteNote(int) error

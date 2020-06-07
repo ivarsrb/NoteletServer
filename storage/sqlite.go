@@ -2,6 +2,7 @@ package storage
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/ivarsrb/NoteletServer/notes"
 
@@ -102,12 +103,44 @@ func (s *SQLiteStorage) SelectNote(id int) (notes.Note, error) {
 	return note, nil
 }
 
-// InsertNote ...
-func (s *SQLiteStorage) InsertNote() error {
+// InsertNote adds given note to database
+func (s *SQLiteStorage) InsertNote(note *notes.Note) error {
+	var err error
+	stmt, err := s.db.Prepare("INSERT INTO notes(id, timestamp, note, tags ) VALUES (NULL,?,?,?)")
+	if err != nil {
+		return err
+	}
+	/*res*/ _, err = stmt.Exec(note.Timestamp, note.Note, note.Tags)
+	if err != nil {
+		return err
+	}
+	/*
+		lastID, err := res.LastInsertId()
+		if err != nil {
+			return err
+		}
+		n.ID = int(lastID)
+	*/
 	return nil
 }
 
-// DeleteNote ...
+// DeleteNote removes note with the given id from the database
 func (s *SQLiteStorage) DeleteNote(id int) error {
+	stmt, err := s.db.Prepare("DELETE FROM notes WHERE id = ?")
+	if err != nil {
+		return err
+	}
+	res, err := stmt.Exec(id)
+	if err != nil {
+		return err
+	}
+	// NOTE: not every driver may support this feature
+	rowCnt, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowCnt != 1 {
+		return fmt.Errorf("numer of affected rows is not '1'")
+	}
 	return nil
 }
