@@ -22,8 +22,7 @@ func getNotes(c *gin.Context) {
 	c.JSON(http.StatusOK, notes)
 }
 
-// getNote retrieve a note with a requested id from the database
-// and send it back as a json
+// getNote retrieve a note with a requested id from the database and send it back as a json
 func getNote(c *gin.Context) {
 	var id int
 	var err error
@@ -35,11 +34,12 @@ func getNote(c *gin.Context) {
 		return
 	}
 	// Retrieve the record if possible
-	var note database.NoteResource
-	if note.Get(id) {
-		c.JSON(http.StatusOK, note)
+	note, err := storage.DB.SelectNote(id)
+	if err != nil {
+		logger.Error.Println("Server: error retrieving a note.", err)
+		c.JSON(http.StatusNotFound, gin.H{"error": "Unable to retrieve a record with the given id"})
 	} else {
-		c.AbortWithStatus(http.StatusNotFound)
+		c.JSON(http.StatusOK, note)
 	}
 }
 

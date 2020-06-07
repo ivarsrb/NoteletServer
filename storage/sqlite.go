@@ -91,9 +91,15 @@ func (s *SQLiteStorage) SelectNotes() ([]notes.Note, error) {
 	return noteList, nil
 }
 
-// SelectNote ...
+// SelectNote retrieves and returns a note with the given id from the database
 func (s *SQLiteStorage) SelectNote(id int) (notes.Note, error) {
-	return notes.Note{}, nil
+	var note notes.Note
+	err := s.db.QueryRow("SELECT id, timestamp, note, tags FROM notes where id = ?", id).
+		Scan(&note.ID, &note.Timestamp, &note.Note, &note.Tags)
+	if err != nil {
+		return notes.Note{}, err
+	}
+	return note, nil
 }
 
 // InsertNote ...
