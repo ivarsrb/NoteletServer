@@ -22,10 +22,10 @@ func newRouter() *gin.Engine {
 	{
 		// Authorization middleware
 		// api.Use(AuthRequired())
-		api.GET("/notes", GetNotes)
-		api.GET("/notes/:id", GetNote)
-		api.POST("/notes", PostNote)
-		api.DELETE("/notes/:id", DeleteNote)
+		api.GET("/notes", getNotes)
+		api.GET("/notes/:id", getNote)
+		api.POST("/notes", postNote)
+		api.DELETE("/notes/:id", deleteNote)
 	}
 
 	return router

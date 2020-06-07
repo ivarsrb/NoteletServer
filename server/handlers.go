@@ -11,8 +11,8 @@ import (
 	"github.com/ivarsrb/NoteletServer/storage"
 )
 
-// GetNotes retrieve a list of all notes
-func GetNotes(c *gin.Context) {
+// getNotes retrieve a list of all notes
+func getNotes(c *gin.Context) {
 	notes, err := storage.DB.SelectNotes()
 	if err != nil {
 		logger.Error.Println("Server: error retrieving notes!", err)
@@ -22,9 +22,9 @@ func GetNotes(c *gin.Context) {
 	c.JSON(http.StatusOK, notes)
 }
 
-// GetNote retrieve a note with a requested id from the database
+// getNote retrieve a note with a requested id from the database
 // and send it back as a json
-func GetNote(c *gin.Context) {
+func getNote(c *gin.Context) {
 	var id int
 	var err error
 	// Identifier which note to get.
@@ -43,8 +43,8 @@ func GetNote(c *gin.Context) {
 	}
 }
 
-// PostNote adds new note
-func PostNote(c *gin.Context) {
+// postNote adds new note
+func postNote(c *gin.Context) {
 	// Check for appropriate content type
 	contentType := c.Request.Header.Get("Content-type")
 	if contentType != "application/json" {
@@ -83,8 +83,8 @@ func PostNote(c *gin.Context) {
 	c.Status(http.StatusCreated)
 }
 
-// DeleteNote delete a given note
-func DeleteNote(c *gin.Context) {
+// deleteNote delete a given note
+func deleteNote(c *gin.Context) {
 	var id int
 	var err error
 	// Identifier which note to delete.
