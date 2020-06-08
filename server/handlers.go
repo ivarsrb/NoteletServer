@@ -50,7 +50,7 @@ func postNote(c *gin.Context) {
 	contentType := c.Request.Header.Get("Content-type")
 	if contentType != "application/json" {
 		logger.Error.Println("server: request content type is not 'application/json'")
-		c.JSON(http.StatusUnsupportedMediaType, gin.H{"error": "JSON content type expected!"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON content type expected!"})
 		return
 	}
 
@@ -66,7 +66,7 @@ func postNote(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to add the not"})
 		return
 	}
-	c.Status(http.StatusCreated)
+	c.Status(http.StatusOK)
 }
 
 // deleteNote delete a given note
