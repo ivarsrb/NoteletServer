@@ -16,7 +16,7 @@ func newRouter() *gin.Engine {
 	// Recovery middleware recovers from any panics and writes a 500 if there was one.
 	router.Use(gin.Recovery())
 	// Limit the maximal size of request srecieved, error is logged otherwie
-	const maxBodySize = 1048576
+	const maxBodySize = 1 << 20
 	router.Use(limits.RequestSizeLimiter(maxBodySize))
 	// Serve frontend static files
 	router.Use(static.Serve("/", static.LocalFile("./web", true)))

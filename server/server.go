@@ -31,6 +31,7 @@ func Run() error {
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
+		ErrorLog:       logger.Error,
 	}
 	// Initializing the server in a goroutine because graceful shutdown
 	// is listening for interrupt signals from OS
