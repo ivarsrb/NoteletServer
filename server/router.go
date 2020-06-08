@@ -2,6 +2,7 @@ package server
 
 import (
 	limits "github.com/gin-contrib/size"
+	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,10 +19,7 @@ func newRouter() *gin.Engine {
 	const maxBodySize = 1048576
 	router.Use(limits.RequestSizeLimiter(maxBodySize))
 	// Serve frontend static files
-	//router.Use(static.Serve("/", static.LocalFile("./web", true)))
-	// TODO: This may have problems when we need js files served, look in github help for other examples
-	router.StaticFile("/", "./web/index.html")
-
+	router.Use(static.Serve("/", static.LocalFile("./web", true)))
 	// Setup route group for the REST API
 	api := router.Group("/api")
 	{
