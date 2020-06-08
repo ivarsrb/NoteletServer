@@ -1,5 +1,5 @@
 /*
-Package logger sets up globals variables of custim loggers
+Package logger sets up globals variables of custom loggers
 */
 package logger
 

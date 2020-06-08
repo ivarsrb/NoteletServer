@@ -15,7 +15,7 @@ import (
 func getNotes(c *gin.Context) {
 	notes, err := storage.DB.SelectNotes()
 	if err != nil {
-		logger.Error.Println("Server: error retrieving notes!", err)
+		logger.Error.Println("server: error retrieving notes: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Cannot retrieve note list"})
 		return
 	}
@@ -29,18 +29,18 @@ func getNote(c *gin.Context) {
 	// Identifier which note to get.
 	// It should be integer
 	if id, err = strconv.Atoi(c.Param("id")); err != nil {
-		logger.Error.Println("Server: 'id' should be an integer type")
+		logger.Error.Println("server: 'id' should be an integer type")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ID of an unsupported type"})
 		return
 	}
 	// Retrieve the record if possible
 	note, err := storage.DB.SelectNote(id)
 	if err != nil {
-		logger.Error.Println("Server: error retrieving a note.", err)
+		logger.Error.Println("server: error retrieving a note: ", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "Unable to retrieve a record with the given id"})
-	} else {
-		c.JSON(http.StatusOK, note)
+		return
 	}
+	c.JSON(http.StatusOK, note)
 }
 
 // postNote adds new note
@@ -49,20 +49,20 @@ func postNote(c *gin.Context) {
 	// Check for appropriate content type
 	contentType := c.Request.Header.Get("Content-type")
 	if contentType != "application/json" {
-		logger.Error.Println("Server: request content type is not 'application/json'")
+		logger.Error.Println("server: request content type is not 'application/json'")
 		c.JSON(http.StatusUnsupportedMediaType, gin.H{"error": "JSON content type expected!"})
 		return
 	}
 
 	var note notes.Note
 	if err = c.ShouldBindJSON(&note); err != nil {
-		logger.Error.Println("Server: ", err)
+		logger.Error.Println("server: cannot parse note json recieved from client: ", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Unable to parse recieved json"})
 		return
 	}
 	err = storage.DB.InsertNote(&note)
 	if err != nil {
-		logger.Error.Println("Server: error inserting a note .", err)
+		logger.Error.Println("server: error inserting a note: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to add the not"})
 		return
 	}
@@ -76,15 +76,15 @@ func deleteNote(c *gin.Context) {
 	// Identifier which note to delete.
 	// It should be integer
 	if id, err = strconv.Atoi(c.Param("id")); err != nil {
-		logger.Error.Println("Server: 'id' should be an integer type")
+		logger.Error.Println("server: 'id' should be an integer type")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ID of an unsupported type!"})
 		return
 	}
 	err = storage.DB.DeleteNote(id)
 	if err != nil {
-		logger.Error.Println("Server: error deleting a note.", err)
+		logger.Error.Println("server: error deleting a note: ", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "Unable to delete a record with the given id"})
-	} else {
-		c.Status(http.StatusOK)
+		return
 	}
+	c.Status(http.StatusOK)
 }

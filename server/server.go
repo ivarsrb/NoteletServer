@@ -1,11 +1,12 @@
 /*
 Package server implements setting up web server, defines routing and handles protocol requests.
-Server configuration is read from command line parameters upon initialization.
+Server configuration is read environment variables
 */
 package server
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -16,7 +17,8 @@ import (
 )
 
 // Run creates and and starts http server
-func Run() {
+func Run() error {
+	// TODO: move env variables to somewhere else
 	port := os.Getenv("PORT")
 	if port == "" {
 		logger.Error.Fatal("$PORT must be set")
@@ -34,16 +36,22 @@ func Run() {
 	// is listening for interrupt signals from OS
 	go func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.Error.Fatalf("listen: %s\n", err)
+			// TODO: how to handle error here, return from goroutine or fatal or do nothing but log
+			logger.Error.Println("server: error while listening and serving: ", err)
 		}
 	}()
-	gracefulShutdown(server)
-	logger.Info.Println("Server exiting")
+	var err error
+	err = gracefulShutdown(server)
+	if err != nil {
+		return fmt.Errorf("server shutdown error:: %v", err)
+	}
+	logger.Info.Println("server: exiting")
+	return nil
 }
 
 // gracefulShutdown listens for signals if server is interrupted and tries
 // to shutdown with little damage as possible
-func gracefulShutdown(server *http.Server) {
+func gracefulShutdown(server *http.Server) error {
 	// Wait for interrupt signal to gracefully shutdown the server with
 	// a timeout of 5 seconds.
 	quit := make(chan os.Signal)
@@ -52,12 +60,13 @@ func gracefulShutdown(server *http.Server) {
 	// kill -9 is syscall.SIGKILL but can't be caught, so don't need add it
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	logger.Info.Println("Shutting down server...")
+	logger.Info.Println("server: shutting down...")
 	// The context is used to inform the server it has 5 seconds to finish
 	// the request it is currently handling
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := server.Shutdown(ctx); err != nil {
-		logger.Error.Fatal("Server forced to shutdown:", err)
+		return err
 	}
+	return nil
 }

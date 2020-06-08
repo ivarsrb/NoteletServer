@@ -1,6 +1,13 @@
+/*
+Package storage package handles storage initialization and implement storage interface
+*/
 package storage
 
-import "github.com/ivarsrb/NoteletServer/notes"
+import (
+	"fmt"
+
+	"github.com/ivarsrb/NoteletServer/notes"
+)
 
 // Type defines available storage types
 type Type int
@@ -32,10 +39,10 @@ func New(t Type) error {
 	case SQLite:
 		DB, err = NewSQLite("./notelet.db")
 		if err != nil {
-			return err
+			return fmt.Errorf("SQLite data storage creation fail %v", err)
 		}
 	case PostgresSQL:
-
+		//TODO: implement PostgresDB here
 	}
 
 	return nil

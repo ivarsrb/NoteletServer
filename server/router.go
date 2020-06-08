@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// newRouter describes a router for REST api and SPA client
 func newRouter() *gin.Engine {
 	router := gin.New()
 	// Global middleware
@@ -13,14 +14,15 @@ func newRouter() *gin.Engine {
 	router.Use(gin.Logger())
 	// Recovery middleware recovers from any panics and writes a 500 if there was one.
 	router.Use(gin.Recovery())
+	// Limit the maximal size of request srecieved, error is logged otherwie
 	const maxBodySize = 1048576
 	router.Use(limits.RequestSizeLimiter(maxBodySize))
 	// Serve frontend static files
 	//router.Use(static.Serve("/", static.LocalFile("./web", true)))
-	// This may have problems when we need js files served, look in github help for other examples
+	// TODO: This may have problems when we need js files served, look in github help for other examples
 	router.StaticFile("/", "./web/index.html")
 
-	// Setup route group for the API
+	// Setup route group for the REST API
 	api := router.Group("/api")
 	{
 		// Authorization middleware

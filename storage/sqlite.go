@@ -10,14 +10,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// createNotesSQL stores SQL script to create database
-const createNotesSQL = `CREATE TABLE IF NOT EXISTS notes (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	timestamp DATE,
-	note TEXT NOT NULL,
-	tags VARCHAR(255)
-	) `
-
 // SQLiteStorage implements the storage interface agains SQLite db
 type SQLiteStorage struct {
 	// Pointer to database connection pool
@@ -43,8 +35,7 @@ func NewSQLite(name string) (*SQLiteStorage, error) {
 	// Create storage table by executing a script.
 	err = createDatabase(stg.db)
 	if err != nil {
-		//logger.Error.Fatal(err)
-		return nil, err
+		return nil, fmt.Errorf("database '%s' creation fail: %v", name, err)
 	}
 	//logger.Info.Println("Database: first connection successfully established")
 	return &stg, nil
@@ -52,6 +43,13 @@ func NewSQLite(name string) (*SQLiteStorage, error) {
 
 // createDatabase creates the database with the model script provided
 func createDatabase(db *sql.DB) error {
+	// createNotesSQL stores SQL script to create database
+	const createNotesSQL = `CREATE TABLE IF NOT EXISTS notes (
+								id INTEGER PRIMARY KEY AUTOINCREMENT,
+								timestamp DATE,
+								note TEXT NOT NULL,
+								tags VARCHAR(255)
+								) `
 	// Create train table
 	_, err := db.Exec(createNotesSQL)
 	if err != nil {
@@ -66,9 +64,8 @@ func (s *SQLiteStorage) SelectNotes() ([]notes.Note, error) {
 	// Make an empty slice. Null slice like "var notes []NoteResource" will
 	// json marshal into 'null'.
 	noteList := make([]notes.Note, 0)
-	rows, err := s.db.Query("select id, timestamp, note, tags FROM notes")
+	rows, err := s.db.Query("SELECT id, timestamp, note, tags FROM notes")
 	if err != nil {
-		//logger.Error.Fatal(err)
 		return nil, err
 	}
 	// Rows should be closed to avoid connection holding
@@ -78,7 +75,6 @@ func (s *SQLiteStorage) SelectNotes() ([]notes.Note, error) {
 		var note notes.Note
 		err := rows.Scan(&note.ID, &note.Timestamp, &note.Note, &note.Tags)
 		if err != nil {
-			//logger.Error.Fatal(err)
 			return nil, err
 		}
 		noteList = append(noteList, note)
@@ -86,7 +82,6 @@ func (s *SQLiteStorage) SelectNotes() ([]notes.Note, error) {
 	// Check for abdnormal loop termination
 	err = rows.Err()
 	if err != nil {
-		//logger.Error.Fatal(err)
 		return nil, err
 	}
 	return noteList, nil
@@ -98,7 +93,7 @@ func (s *SQLiteStorage) SelectNote(id int) (notes.Note, error) {
 	err := s.db.QueryRow("SELECT id, timestamp, note, tags FROM notes where id = ?", id).
 		Scan(&note.ID, &note.Timestamp, &note.Note, &note.Tags)
 	if err != nil {
-		return notes.Note{}, err
+		return notes.Note{}, fmt.Errorf("note with id '%d': %v", id, err)
 	}
 	return note, nil
 }
@@ -106,7 +101,7 @@ func (s *SQLiteStorage) SelectNote(id int) (notes.Note, error) {
 // InsertNote adds given note to database
 func (s *SQLiteStorage) InsertNote(note *notes.Note) error {
 	var err error
-	stmt, err := s.db.Prepare("INSERT INTO notes(id, timestamp, note, tags ) VALUES (NULL,?,?,?)")
+	stmt, err := s.db.Prepare("INSERT INTO notes(id, timestamp, note, tags) VALUES (NULL,?,?,?)")
 	if err != nil {
 		return err
 	}
@@ -128,16 +123,16 @@ func (s *SQLiteStorage) InsertNote(note *notes.Note) error {
 func (s *SQLiteStorage) DeleteNote(id int) error {
 	stmt, err := s.db.Prepare("DELETE FROM notes WHERE id = ?")
 	if err != nil {
-		return err
+		return fmt.Errorf("note with id '%d': %v", id, err)
 	}
 	res, err := stmt.Exec(id)
 	if err != nil {
-		return err
+		return fmt.Errorf("note with id '%d': %v", id, err)
 	}
 	// NOTE: not every driver may support this feature
 	rowCnt, err := res.RowsAffected()
 	if err != nil {
-		return err
+		return fmt.Errorf("note with id '%d': %v", id, err)
 	}
 	if rowCnt != 1 {
 		return fmt.Errorf("numer of affected rows is not '1'")

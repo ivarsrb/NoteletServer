@@ -12,11 +12,14 @@ import (
 
 func main() {
 	var err error
-	// TODO maybe return storage object here and pass on rather
+	// TODO: maybe return storage object here and pass on rather
 	// than store it clobaly in storage package
 	err = storage.New(storage.SQLite)
 	if err != nil {
 		log.Fatal(err)
 	}
-	server.Run()
+	err = server.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
