@@ -26,6 +26,7 @@ type Storage interface {
 	SelectNote(int) (notes.Note, error)
 	SelectNotes() ([]notes.Note, error)
 	DeleteNote(int) error
+	UpdateNote(note *notes.Note) error
 }
 
 // DB is the global storage instance

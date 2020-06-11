@@ -139,3 +139,26 @@ func (s *SQLiteStorage) DeleteNote(id int) error {
 	}
 	return nil
 }
+
+// UpdateNote update a note (ID from structure) with the new
+// values from the structure
+func (s *SQLiteStorage) UpdateNote(note *notes.Note) error {
+	// Update time stamp upon updating the record
+	stmt, err := s.db.Prepare("UPDATE notes SET timestamp = CURRENT_TIMESTAMP, note = ?, tags = ? WHERE id = ?")
+	if err != nil {
+		return err
+	}
+	res, err := stmt.Exec(note.Note, note.Tags, note.ID)
+	if err != nil {
+		return err
+	}
+	// NOTE: not every driver may support this feature
+	rowCnt, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("note with id '%d': %v", note.ID, err)
+	}
+	if rowCnt != 1 {
+		return fmt.Errorf("numer of affected rows is not '1'. Id '%d'", note.ID)
+	}
+	return nil
+}

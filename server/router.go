@@ -29,6 +29,7 @@ func newRouter() *gin.Engine {
 		api.GET("/notes/:id", getNote)
 		api.POST("/notes", postNote)
 		api.DELETE("/notes/:id", deleteNote)
+		api.PUT("/notes/:id", replaceNote)
 	}
 
 	return router
