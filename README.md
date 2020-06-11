@@ -13,7 +13,7 @@ SPA template:
 REST Api provides the following services:
 | HTTP verb     | Path          | Service |
 | ------------- |:-------------:| -----:|
-| GET    | /notes | Retrieve the list of all notes |
+| GET    | /notes<?filter=searchstring> | Retrieve the list of notes optionallly filtered by searchstring |
 | GET    | /notes/{id} | Retrieve a note with the given id |
 | POST   | /notes      | Add a new note |
 | DELETE | /notes/{id} | Remove a note with the given id
