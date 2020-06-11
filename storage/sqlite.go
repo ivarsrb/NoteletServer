@@ -64,7 +64,7 @@ func (s *SQLiteStorage) SelectNotes() ([]notes.Note, error) {
 	// Make an empty slice. Null slice like "var notes []NoteResource" will
 	// json marshal into 'null'.
 	noteList := make([]notes.Note, 0)
-	rows, err := s.db.Query("SELECT id, timestamp, note, tags FROM notes")
+	rows, err := s.db.Query("SELECT id, timestamp, note, tags FROM notes ORDER BY id DESC")
 	if err != nil {
 		return nil, err
 	}
