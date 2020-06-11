@@ -47,8 +47,7 @@ func getNote(c *gin.Context) {
 func postNote(c *gin.Context) {
 	var err error
 	// Check for appropriate content type
-	contentType := c.Request.Header.Get("Content-type")
-	if contentType != "application/json" {
+	if !hasJSONHeader(c) {
 		logger.Error.Println("server: request content type is not 'application/json'")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON content type expected!"})
 		return
@@ -101,8 +100,7 @@ func replaceNote(c *gin.Context) {
 		return
 	}
 	// Check for appropriate content type
-	contentType := c.Request.Header.Get("Content-type")
-	if contentType != "application/json" {
+	if !hasJSONHeader(c) {
 		logger.Error.Println("server: request content type is not 'application/json'")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON content type expected!"})
 		return
@@ -121,4 +119,11 @@ func replaceNote(c *gin.Context) {
 		return
 	}
 	c.Status(http.StatusOK)
+}
+
+// hasJSONHeader determine if header of the gicurrent request
+// is "application/json"
+func hasJSONHeader(c *gin.Context) bool {
+	contentType := c.Request.Header.Get("Content-type")
+	return contentType == "application/json"
 }
