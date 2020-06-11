@@ -11,9 +11,10 @@ import (
 	"github.com/ivarsrb/NoteletServer/storage"
 )
 
-// getNotes retrieve a list of all notes
+// getNotes retrieve a list of notes
 func getNotes(c *gin.Context) {
-	notes, err := storage.DB.SelectNotes()
+	filter := c.DefaultQuery("filter", "")
+	notes, err := storage.DB.SelectNotes(filter)
 	if err != nil {
 		logger.Error.Println("server: error retrieving notes: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Cannot retrieve note list"})

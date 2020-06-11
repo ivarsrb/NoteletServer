@@ -3,6 +3,7 @@ package storage
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/ivarsrb/NoteletServer/notes"
 
@@ -58,18 +59,36 @@ func createDatabase(db *sql.DB) error {
 	return nil
 }
 
-// SelectNotes retrieves all notes from the database
+// SelectNotes retrieves filtered notes from the database
 // and return as a notes resource slice
-func (s *SQLiteStorage) SelectNotes() ([]notes.Note, error) {
-	// Make an empty slice. Null slice like "var notes []NoteResource" will
-	// json marshal into 'null'.
-	noteList := make([]notes.Note, 0)
-	rows, err := s.db.Query("SELECT id, timestamp, note, tags FROM notes ORDER BY id DESC")
+// If filter parameter is empty all notes are returned in descending order
+// Filter phrases ares searched in tags and note fields
+func (s *SQLiteStorage) SelectNotes(filter string) ([]notes.Note, error) {
+	var rows *sql.Rows
+	var err error
+	if filter == "" {
+		rows, err = s.db.Query("SELECT id, timestamp, note, tags FROM notes ORDER BY id DESC")
+	} else {
+		filters := strings.Fields(filter)
+		var searchQuery string
+		searchQuery += "%"
+		for i, v := range filters {
+			if i > 0 {
+				searchQuery += "%"
+			}
+			searchQuery += v
+		}
+		searchQuery += "%"
+		rows, err = s.db.Query("SELECT id, timestamp, note, tags FROM notes WHERE tags LIKE ? OR note LIKE ?", searchQuery, searchQuery)
+	}
 	if err != nil {
 		return nil, err
 	}
 	// Rows should be closed to avoid connection holding
 	defer rows.Close()
+	// Make an empty slice. Null slice like "var notes []NoteResource" will
+	// json marshal into 'null'.
+	noteList := make([]notes.Note, 0)
 	// Iterate over all selected rows and append to return slice
 	for rows.Next() {
 		var note notes.Note

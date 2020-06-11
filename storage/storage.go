@@ -24,7 +24,7 @@ const (
 type Storage interface {
 	InsertNote(note *notes.Note) error
 	SelectNote(int) (notes.Note, error)
-	SelectNotes() ([]notes.Note, error)
+	SelectNotes(filter string) ([]notes.Note, error)
 	DeleteNote(int) error
 	UpdateNote(note *notes.Note) error
 }
