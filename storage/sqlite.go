@@ -46,7 +46,7 @@ func createDatabase(db *sql.DB) error {
 	// createNotesSQL stores SQL script to create database
 	const createNotesSQL = `CREATE TABLE IF NOT EXISTS notes (
 								id INTEGER PRIMARY KEY AUTOINCREMENT,
-								timestamp DATE,
+								timestamp DATE DEFAULT CURRENT_TIMESTAMP,
 								note TEXT NOT NULL,
 								tags VARCHAR(255)
 								) `
@@ -99,13 +99,15 @@ func (s *SQLiteStorage) SelectNote(id int) (notes.Note, error) {
 }
 
 // InsertNote adds given note to database
+// Note body and tags are inserted from client, timestamp is set automatically upon
+// record creation
 func (s *SQLiteStorage) InsertNote(note *notes.Note) error {
 	var err error
-	stmt, err := s.db.Prepare("INSERT INTO notes(id, timestamp, note, tags) VALUES (NULL,?,?,?)")
+	stmt, err := s.db.Prepare("INSERT INTO notes(id, note, tags) VALUES (NULL,?,?)")
 	if err != nil {
 		return err
 	}
-	/*res*/ _, err = stmt.Exec(note.Timestamp, note.Note, note.Tags)
+	/*res*/ _, err = stmt.Exec(note.Note, note.Tags)
 	if err != nil {
 		return err
 	}
@@ -142,8 +144,8 @@ func (s *SQLiteStorage) DeleteNote(id int) error {
 
 // UpdateNote update a note (ID from structure) with the new
 // values from the structure
+// Note body and tags are updated from client, timestamp is updated on a server request
 func (s *SQLiteStorage) UpdateNote(note *notes.Note) error {
-	// Update time stamp upon updating the record
 	stmt, err := s.db.Prepare("UPDATE notes SET timestamp = CURRENT_TIMESTAMP, note = ?, tags = ? WHERE id = ?")
 	if err != nil {
 		return err
