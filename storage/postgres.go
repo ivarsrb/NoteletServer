@@ -43,15 +43,17 @@ func NewPostgres(name string) (*PostgresStorage, error) {
 
 // createPostgresDB creates the database with the model script provided
 func createPostgresDB(db *sql.DB) error {
-	// createNotesSQL stores SQL script to create database
-	const createNotesSQL = `CREATE TABLE IF NOT EXISTS notes (
-								id SERIAL PRIMARY KEY,
-								timestamp DATE DEFAULT CURRENT_TIMESTAMP,
-								note TEXT NOT NULL,
-								tags VARCHAR(255)
-								) `
+	stmt, err := db.Prepare(`CREATE TABLE IF NOT EXISTS notes (
+		id SERIAL PRIMARY KEY,
+		timestamp DATE DEFAULT CURRENT_TIMESTAMP,
+		note TEXT NOT NULL,
+		tags VARCHAR(255)
+		) `)
+	if err != nil {
+		return err
+	}
 	// Create train table
-	_, err := db.Exec(createNotesSQL)
+	_, err = stmt.Exec()
 	if err != nil {
 		return err
 	}
