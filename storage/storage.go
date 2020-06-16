@@ -40,10 +40,13 @@ func New(t Type) error {
 	case SQLite:
 		DB, err = NewSQLite("./notelet.db")
 		if err != nil {
-			return fmt.Errorf("SQLite data storage creation fail %v", err)
+			return fmt.Errorf("data storage creation fail: %v", err)
 		}
 	case PostgresSQL:
-		//TODO: implement PostgresDB here
+		DB, err = NewPostgres("postgres://testusr:testpass123@localhost/testdb?sslmode=disable")
+		if err != nil {
+			return fmt.Errorf("data storage creation fail: %v", err)
+		}
 	}
 
 	return nil

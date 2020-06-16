@@ -1,50 +1,51 @@
 package storage
 
 import (
+	// To initialize PostgreSQL driver
 	"database/sql"
 	"fmt"
 	"strings"
 
 	"github.com/ivarsrb/NoteletServer/notes"
-
 	// To initialize sqlite3 driver
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/lib/pq"
 )
 
-// SQLiteStorage implements the storage interface agains SQLite db
-type SQLiteStorage struct {
+// PostgresStorage implements the storage interface agains PostgreSQL db
+type PostgresStorage struct {
 	// Pointer to database connection pool
 	db *sql.DB
 }
 
-// NewSQLite creates and returns SQLite storage object.
+// NewPostgres creates and returns NewPostgreSQL storage object.
 // The database connection is established and database created.
 // name parameter specifies database file name
-func NewSQLite(name string) (*SQLiteStorage, error) {
+func NewPostgres(name string) (*PostgresStorage, error) {
 	var err error
-	stg := SQLiteStorage{}
+	stg := PostgresStorage{}
 	// Prepares the database abstraction for later use
 	// The first actual connection to the underlying datastore will
 	// be established lazily, when it’s needed for the first time.
-	const driver = "sqlite3"
+	const driver = "postgres"
 	stg.db, err = sql.Open(driver, name)
 	if err != nil {
-		return nil, fmt.Errorf("SQLite db '%s' open fail: %v", name, err)
+		return nil, fmt.Errorf("PostgreSQL db open fail: %v", err)
 	}
 	// Actual first connection with the database is established here.
 	// Create storage table by executing a script.
-	err = createSQLiteDB(stg.db)
+	err = createPostgresDB(stg.db)
 	if err != nil {
-		return nil, fmt.Errorf("SQLite db '%s' creation fail: %v", name, err)
+		return nil, fmt.Errorf("PostgreSQL db creation fail: %v", err)
 	}
+
 	return &stg, nil
 }
 
-// createSQLiteDB creates the database with the model script provided
-func createSQLiteDB(db *sql.DB) error {
+// createPostgresDB creates the database with the model script provided
+func createPostgresDB(db *sql.DB) error {
 	// createNotesSQL stores SQL script to create database
 	const createNotesSQL = `CREATE TABLE IF NOT EXISTS notes (
-								id INTEGER PRIMARY KEY AUTOINCREMENT,
+								id SERIAL PRIMARY KEY,
 								timestamp DATE DEFAULT CURRENT_TIMESTAMP,
 								note TEXT NOT NULL,
 								tags VARCHAR(255)
@@ -61,7 +62,7 @@ func createSQLiteDB(db *sql.DB) error {
 // and return as a notes resource slice
 // If filter parameter is empty all notes are returned in descending order
 // Filter phrases ares searched in tags and note fields
-func (s *SQLiteStorage) SelectNotes(filter string) ([]notes.Note, error) {
+func (s *PostgresStorage) SelectNotes(filter string) ([]notes.Note, error) {
 	var rows *sql.Rows
 	var err error
 	if filter == "" {
@@ -105,7 +106,7 @@ func (s *SQLiteStorage) SelectNotes(filter string) ([]notes.Note, error) {
 }
 
 // SelectNote retrieves and returns a note with the given id from the database
-func (s *SQLiteStorage) SelectNote(id int) (notes.Note, error) {
+func (s *PostgresStorage) SelectNote(id int) (notes.Note, error) {
 	var note notes.Note
 	err := s.db.QueryRow("SELECT id, timestamp, note, tags FROM notes where id = ?", id).
 		Scan(&note.ID, &note.Timestamp, &note.Note, &note.Tags)
@@ -118,7 +119,7 @@ func (s *SQLiteStorage) SelectNote(id int) (notes.Note, error) {
 // InsertNote adds given note to database
 // Note body and tags are inserted from client, timestamp is set automatically upon
 // record creation
-func (s *SQLiteStorage) InsertNote(note *notes.Note) error {
+func (s *PostgresStorage) InsertNote(note *notes.Note) error {
 	var err error
 	stmt, err := s.db.Prepare("INSERT INTO notes(id, note, tags) VALUES (NULL,?,?)")
 	if err != nil {
@@ -139,7 +140,7 @@ func (s *SQLiteStorage) InsertNote(note *notes.Note) error {
 }
 
 // DeleteNote removes note with the given id from the database
-func (s *SQLiteStorage) DeleteNote(id int) error {
+func (s *PostgresStorage) DeleteNote(id int) error {
 	stmt, err := s.db.Prepare("DELETE FROM notes WHERE id = ?")
 	if err != nil {
 		return fmt.Errorf("note with id '%d': %v", id, err)
@@ -162,7 +163,7 @@ func (s *SQLiteStorage) DeleteNote(id int) error {
 // UpdateNote update a note (ID from structure) with the new
 // values from the structure
 // Note body and tags are updated from client, timestamp is updated on a server request
-func (s *SQLiteStorage) UpdateNote(note *notes.Note) error {
+func (s *PostgresStorage) UpdateNote(note *notes.Note) error {
 	stmt, err := s.db.Prepare("UPDATE notes SET timestamp = CURRENT_TIMESTAMP, note = ?, tags = ? WHERE id = ?")
 	if err != nil {
 		return err

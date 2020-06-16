@@ -14,7 +14,7 @@ func main() {
 	var err error
 	// TODO: maybe return storage object here and pass on rather
 	// than store it clobaly in storage package
-	err = storage.New(storage.SQLite)
+	err = storage.New(storage.PostgresSQL)
 	if err != nil {
 		log.Fatal(err)
 	}
