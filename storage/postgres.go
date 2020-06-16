@@ -45,10 +45,10 @@ func NewPostgres(name string) (*PostgresStorage, error) {
 func createPostgresDB(db *sql.DB) error {
 	stmt, err := db.Prepare(`CREATE TABLE IF NOT EXISTS notes (
 		id SERIAL PRIMARY KEY,
-		timestamp DATE DEFAULT CURRENT_TIMESTAMP,
+		timestamp TIMESTAMP without time zone DEFAULT timezone('UTC', now()),
 		note TEXT NOT NULL,
 		tags VARCHAR(255)
-		) `)
+		)`)
 	if err != nil {
 		return err
 	}
@@ -127,17 +127,10 @@ func (s *PostgresStorage) InsertNote(note *notes.Note) error {
 	if err != nil {
 		return err
 	}
-	/*res*/ _, err = stmt.Exec(note.Note, note.Tags)
+	_, err = stmt.Exec(note.Note, note.Tags)
 	if err != nil {
 		return err
 	}
-	/*
-		lastID, err := res.LastInsertId()
-		if err != nil {
-			return err
-		}
-		n.ID = int(lastID)
-	*/
 	return nil
 }
 
@@ -166,7 +159,7 @@ func (s *PostgresStorage) DeleteNote(id int) error {
 // values from the structure
 // Note body and tags are updated from client, timestamp is updated on a server request
 func (s *PostgresStorage) UpdateNote(note *notes.Note) error {
-	stmt, err := s.db.Prepare("UPDATE notes SET timestamp = CURRENT_TIMESTAMP, note = $1, tags = $2 WHERE id = $3")
+	stmt, err := s.db.Prepare("UPDATE notes SET timestamp = timezone('UTC', now()), note = $1, tags = $2 WHERE id = $3")
 	if err != nil {
 		return err
 	}
