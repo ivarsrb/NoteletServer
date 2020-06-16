@@ -110,7 +110,7 @@ func (s *PostgresStorage) SelectNotes(filter string) ([]notes.Note, error) {
 // SelectNote retrieves and returns a note with the given id from the database
 func (s *PostgresStorage) SelectNote(id int) (notes.Note, error) {
 	var note notes.Note
-	err := s.db.QueryRow("SELECT id, timestamp, note, tags FROM notes where id = ?", id).
+	err := s.db.QueryRow("SELECT id, timestamp, note, tags FROM notes where id = $1", id).
 		Scan(&note.ID, &note.Timestamp, &note.Note, &note.Tags)
 	if err != nil {
 		return notes.Note{}, fmt.Errorf("note with id '%d': %v", id, err)
@@ -123,7 +123,7 @@ func (s *PostgresStorage) SelectNote(id int) (notes.Note, error) {
 // record creation
 func (s *PostgresStorage) InsertNote(note *notes.Note) error {
 	var err error
-	stmt, err := s.db.Prepare("INSERT INTO notes(id, note, tags) VALUES (NULL,?,?)")
+	stmt, err := s.db.Prepare("INSERT INTO notes(note, tags) VALUES ($1,$2)")
 	if err != nil {
 		return err
 	}
@@ -143,7 +143,7 @@ func (s *PostgresStorage) InsertNote(note *notes.Note) error {
 
 // DeleteNote removes note with the given id from the database
 func (s *PostgresStorage) DeleteNote(id int) error {
-	stmt, err := s.db.Prepare("DELETE FROM notes WHERE id = ?")
+	stmt, err := s.db.Prepare("DELETE FROM notes WHERE id = $1")
 	if err != nil {
 		return fmt.Errorf("note with id '%d': %v", id, err)
 	}
@@ -166,7 +166,7 @@ func (s *PostgresStorage) DeleteNote(id int) error {
 // values from the structure
 // Note body and tags are updated from client, timestamp is updated on a server request
 func (s *PostgresStorage) UpdateNote(note *notes.Note) error {
-	stmt, err := s.db.Prepare("UPDATE notes SET timestamp = CURRENT_TIMESTAMP, note = ?, tags = ? WHERE id = ?")
+	stmt, err := s.db.Prepare("UPDATE notes SET timestamp = CURRENT_TIMESTAMP, note = $1, tags = $2 WHERE id = $3")
 	if err != nil {
 		return err
 	}
