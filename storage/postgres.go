@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/ivarsrb/NoteletServer/logger"
 	"github.com/ivarsrb/NoteletServer/notes"
+
 	// To initialize sqlite3 driver
 	_ "github.com/lib/pq"
 )
@@ -43,20 +45,77 @@ func NewPostgres(name string) (*PostgresStorage, error) {
 
 // createPostgresDB creates the database with the model script provided
 func createPostgresDB(db *sql.DB) error {
-	stmt, err := db.Prepare(`CREATE TABLE IF NOT EXISTS notes (
+
+	/*
+		Full text search in milliseconds with PostgreSQL
+		   UPDATE notes SET tsv =
+		       setweight(to_tsvector(tags), 'A') ||
+		       setweight(to_tsvector(note), 'B');
+	*/
+	var stmt *sql.Stmt
+	var err error
+	// Create table
+	stmt, err = db.Prepare(`CREATE TABLE IF NOT EXISTS notes (
 		id SERIAL PRIMARY KEY,
 		timestamp TIMESTAMP without time zone DEFAULT timezone('UTC', now()),
-		note TEXT NOT NULL,
-		tags VARCHAR(255)
+		note TEXT NOT NULL CONSTRAINT notechk CHECK (char_length(note) <= 10000),
+		tags VARCHAR(255),
+		tsv TSVECTOR
 		)`)
 	if err != nil {
 		return err
 	}
-	// Create train table
 	_, err = stmt.Exec()
 	if err != nil {
 		return err
 	}
+	// Create index on searchable field
+	stmt, err = db.Prepare(`CREATE INDEX IF NOT EXISTS notes_idx ON notes USING GIN(tsv)`)
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec()
+	if err != nil {
+		return err
+	}
+	// Function
+	stmt, err = db.Prepare(`CREATE OR REPLACE FUNCTION search_trigger() RETURNS trigger AS $$
+							BEGIN
+								NEW.tsv :=
+									setweight(to_tsvector(NEW.tags), 'A') ||
+									setweight(to_tsvector(NEW.note), 'B');
+								return NEW;
+							END
+							$$ LANGUAGE plpgsql;`)
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec()
+	if err != nil {
+		return err
+	}
+	// Trigger (drop if exists)
+	stmt, err = db.Prepare(`DROP TRIGGER IF EXISTS tsvector_update
+								ON notes`)
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec()
+	if err != nil {
+		return err
+	}
+	// Trigger
+	stmt, err = db.Prepare(`CREATE TRIGGER tsvector_update BEFORE INSERT OR UPDATE
+								ON notes 
+								FOR EACH ROW EXECUTE PROCEDURE search_trigger()`)
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -72,15 +131,18 @@ func (s *PostgresStorage) SelectNotes(filter string) ([]notes.Note, error) {
 	} else {
 		filters := strings.Fields(filter)
 		var searchQuery string
-		searchQuery += "%"
+		searchQuery += "%("
 		for i, v := range filters {
 			if i > 0 {
-				searchQuery += "%"
+				searchQuery += "|"
 			}
 			searchQuery += v
 		}
-		searchQuery += "%"
-		rows, err = s.db.Query("SELECT id, timestamp, note, tags FROM notes WHERE tags LIKE ? OR note LIKE ?", searchQuery, searchQuery)
+		searchQuery += ")%"
+		rows, err = s.db.Query("SELECT id, timestamp, note, tags FROM notes WHERE tags SIMILAR TO $1 OR note SIMILAR TO $1", searchQuery)
+
+		logger.Info.Println(filter)
+		logger.Info.Println(searchQuery)
 	}
 	if err != nil {
 		return nil, err
