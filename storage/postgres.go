@@ -4,9 +4,7 @@ import (
 	// To initialize PostgreSQL driver
 	"database/sql"
 	"fmt"
-	"strings"
 
-	"github.com/ivarsrb/NoteletServer/logger"
 	"github.com/ivarsrb/NoteletServer/notes"
 
 	// To initialize sqlite3 driver
@@ -43,25 +41,18 @@ func NewPostgres(name string) (*PostgresStorage, error) {
 	return &stg, nil
 }
 
-// createPostgresDB creates the database with the model script provided
+// createPostgresDB creates and sets up the database
 func createPostgresDB(db *sql.DB) error {
-
-	/*
-		Full text search in milliseconds with PostgreSQL
-		   UPDATE notes SET tsv =
-		       setweight(to_tsvector(tags), 'A') ||
-		       setweight(to_tsvector(note), 'B');
-	*/
 	var stmt *sql.Stmt
 	var err error
 	// Create table
 	stmt, err = db.Prepare(`CREATE TABLE IF NOT EXISTS notes (
-		id SERIAL PRIMARY KEY,
-		timestamp TIMESTAMP without time zone DEFAULT timezone('UTC', now()),
-		note TEXT NOT NULL CONSTRAINT notechk CHECK (char_length(note) <= 10000),
-		tags VARCHAR(255),
-		tsv TSVECTOR
-		)`)
+							id SERIAL PRIMARY KEY,
+							timestamp TIMESTAMP without time zone DEFAULT timezone('UTC', now()),
+							note TEXT NOT NULL CONSTRAINT notechk CHECK (char_length(note) <= 10000),
+							tags VARCHAR(255),
+							tsv TSVECTOR
+							)`)
 	if err != nil {
 		return err
 	}
@@ -78,7 +69,10 @@ func createPostgresDB(db *sql.DB) error {
 	if err != nil {
 		return err
 	}
-	// Function
+	// Function for storing text-search tokens extracted from notes and tags columns
+	// with assigned priorities
+	// Function to_tsvector() take argument of a dictionary to use when normalizing the words
+	// as lexemes
 	stmt, err = db.Prepare(`CREATE OR REPLACE FUNCTION search_trigger() RETURNS trigger AS $$
 							BEGIN
 								NEW.tsv :=
@@ -94,7 +88,8 @@ func createPostgresDB(db *sql.DB) error {
 	if err != nil {
 		return err
 	}
-	// Trigger (drop if exists)
+	// Drop trigger if it exists.
+	// There is no mechanism to do it in one statement.
 	stmt, err = db.Prepare(`DROP TRIGGER IF EXISTS tsvector_update
 								ON notes`)
 	if err != nil {
@@ -104,7 +99,8 @@ func createPostgresDB(db *sql.DB) error {
 	if err != nil {
 		return err
 	}
-	// Trigger
+	// When new record is added or updated call the function that extracts
+	// text search triggers and stores them
 	stmt, err = db.Prepare(`CREATE TRIGGER tsvector_update BEFORE INSERT OR UPDATE
 								ON notes 
 								FOR EACH ROW EXECUTE PROCEDURE search_trigger()`)
@@ -122,27 +118,19 @@ func createPostgresDB(db *sql.DB) error {
 // SelectNotes retrieves filtered notes from the database
 // and return as a notes resource slice
 // If filter parameter is empty all notes are returned in descending order
-// Filter phrases ares searched in tags and note fields
+// Filter phrase is searched in tags and note fields that are tokenized in tsv field.
 func (s *PostgresStorage) SelectNotes(filter string) ([]notes.Note, error) {
 	var rows *sql.Rows
 	var err error
 	if filter == "" {
 		rows, err = s.db.Query("SELECT id, timestamp, note, tags FROM notes ORDER BY id DESC")
 	} else {
-		filters := strings.Fields(filter)
-		var searchQuery string
-		searchQuery += "%("
-		for i, v := range filters {
-			if i > 0 {
-				searchQuery += "|"
-			}
-			searchQuery += v
-		}
-		searchQuery += ")%"
-		rows, err = s.db.Query("SELECT id, timestamp, note, tags FROM notes WHERE tags SIMILAR TO $1 OR note SIMILAR TO $1", searchQuery)
-
-		logger.Info.Println(filter)
-		logger.Info.Println(searchQuery)
+		// plainto_tsquery takes plane string and tokenizes and adds & between words.
+		// For more fine-tuned search use to_tquery() with custom logical operators.
+		// Ranking is sorted taking weights into account (tags get more weight than note text)
+		rows, err = s.db.Query(`SELECT id, timestamp, note, tags FROM notes 
+								WHERE tsv @@ plainto_tsquery($1)
+								ORDER BY ts_rank_cd(tsv, plainto_tsquery($1)) DESC`, filter)
 	}
 	if err != nil {
 		return nil, err
