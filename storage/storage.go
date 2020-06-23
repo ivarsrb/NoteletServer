@@ -5,7 +5,9 @@ package storage
 
 import (
 	"fmt"
+	"os"
 
+	"github.com/ivarsrb/NoteletServer/logger"
 	"github.com/ivarsrb/NoteletServer/notes"
 )
 
@@ -43,7 +45,13 @@ func New(t Type) error {
 			return fmt.Errorf("data storage creation fail: %v", err)
 		}
 	case PostgresSQL:
-		DB, err = NewPostgres("postgres://testusr:testpass123@localhost/testdb?sslmode=disable")
+		// TODO: move env variables to somewhere else
+		dburl := os.Getenv("DATABASE_URL")
+		if dburl == "" {
+			logger.Error.Fatal("$DATABASE_URL must be set")
+		}
+
+		DB, err = NewPostgres(dburl)
 		if err != nil {
 			return fmt.Errorf("data storage creation fail: %v", err)
 		}

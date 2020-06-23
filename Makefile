@@ -1,4 +1,5 @@
-export PORT = 8080
+export PORT=8080
+export DATABASE_URL=postgres://testusr:testpass123@localhost/testdb
 export GIN_MODE=debug
 BINARY = NoteletServer
 
