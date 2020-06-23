@@ -17,6 +17,74 @@ type PostgresStorage struct {
 	db *sql.DB
 }
 
+// prepANdExec prepares statement and executes it in a single go.
+// In case any error occures it is returned
+func prepAndExec(db *sql.DB, query string) error {
+	// Create index on searchable field
+	stmt, err := db.Prepare(query)
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// createPostgresDB creates and sets up the database
+func createPostgresDB(db *sql.DB) error {
+	//var stmt *sql.Stmt
+	var err error
+	// Create table
+	err = prepAndExec(db, `CREATE TABLE IF NOT EXISTS notes (
+							id SERIAL PRIMARY KEY,
+							timestamp TIMESTAMP without time zone DEFAULT timezone('UTC', now()),
+							note TEXT NOT NULL CONSTRAINT notechk CHECK (char_length(note) <= 10000),
+							tags VARCHAR(255),
+							tsv TSVECTOR
+							)`)
+	if err != nil {
+		return err
+	}
+	// Create index on searchable field
+	err = prepAndExec(db, `CREATE INDEX IF NOT EXISTS notes_idx ON notes USING GIN(tsv)`)
+	if err != nil {
+		return err
+	}
+	// Function for storing text-search tokens extracted from notes and tags columns
+	// with assigned priorities
+	// Function to_tsvector() take argument of a dictionary to use when normalizing the words
+	// as lexemes
+	err = prepAndExec(db, `CREATE OR REPLACE FUNCTION search_trigger() RETURNS trigger AS $$
+							BEGIN
+								NEW.tsv :=
+									setweight(to_tsvector(NEW.tags), 'A') ||
+									setweight(to_tsvector(NEW.note), 'B');
+								return NEW;
+							END
+							$$ LANGUAGE plpgsql;`)
+	if err != nil {
+		return err
+	}
+	// Drop trigger if it exists.
+	// There is no mechanism to do it in one statement.
+	err = prepAndExec(db, `DROP TRIGGER IF EXISTS tsvector_update ON notes`)
+	if err != nil {
+		return err
+	}
+	// When new record is added or updated call the function that extracts
+	// text search triggers and stores them
+	err = prepAndExec(db, `CREATE TRIGGER tsvector_update BEFORE INSERT OR UPDATE
+							ON notes 
+							FOR EACH ROW EXECUTE PROCEDURE search_trigger()`)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // NewPostgres creates and returns NewPostgreSQL storage object.
 // The database connection is established and database created.
 // name parameter specifies database file name
@@ -39,80 +107,6 @@ func NewPostgres(name string) (*PostgresStorage, error) {
 	}
 
 	return &stg, nil
-}
-
-// createPostgresDB creates and sets up the database
-func createPostgresDB(db *sql.DB) error {
-	var stmt *sql.Stmt
-	var err error
-	// Create table
-	stmt, err = db.Prepare(`CREATE TABLE IF NOT EXISTS notes (
-							id SERIAL PRIMARY KEY,
-							timestamp TIMESTAMP without time zone DEFAULT timezone('UTC', now()),
-							note TEXT NOT NULL CONSTRAINT notechk CHECK (char_length(note) <= 10000),
-							tags VARCHAR(255),
-							tsv TSVECTOR
-							)`)
-	if err != nil {
-		return err
-	}
-	_, err = stmt.Exec()
-	if err != nil {
-		return err
-	}
-	// Create index on searchable field
-	stmt, err = db.Prepare(`CREATE INDEX IF NOT EXISTS notes_idx ON notes USING GIN(tsv)`)
-	if err != nil {
-		return err
-	}
-	_, err = stmt.Exec()
-	if err != nil {
-		return err
-	}
-	// Function for storing text-search tokens extracted from notes and tags columns
-	// with assigned priorities
-	// Function to_tsvector() take argument of a dictionary to use when normalizing the words
-	// as lexemes
-	stmt, err = db.Prepare(`CREATE OR REPLACE FUNCTION search_trigger() RETURNS trigger AS $$
-							BEGIN
-								NEW.tsv :=
-									setweight(to_tsvector(NEW.tags), 'A') ||
-									setweight(to_tsvector(NEW.note), 'B');
-								return NEW;
-							END
-							$$ LANGUAGE plpgsql;`)
-	if err != nil {
-		return err
-	}
-	_, err = stmt.Exec()
-	if err != nil {
-		return err
-	}
-	// Drop trigger if it exists.
-	// There is no mechanism to do it in one statement.
-	stmt, err = db.Prepare(`DROP TRIGGER IF EXISTS tsvector_update
-								ON notes`)
-	if err != nil {
-		return err
-	}
-	_, err = stmt.Exec()
-	if err != nil {
-		return err
-	}
-	// When new record is added or updated call the function that extracts
-	// text search triggers and stores them
-	stmt, err = db.Prepare(`CREATE TRIGGER tsvector_update BEFORE INSERT OR UPDATE
-								ON notes 
-								FOR EACH ROW EXECUTE PROCEDURE search_trigger()`)
-	if err != nil {
-		return err
-	}
-	_, err = stmt.Exec()
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // SelectNotes retrieves filtered notes from the database
