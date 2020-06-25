@@ -1,25 +1,16 @@
 package main
 
 import (
-	"log"
-
-	"github.com/ivarsrb/NoteletServer/server"
-	"github.com/ivarsrb/NoteletServer/storage"
-
 	// For hosting on Heroku
 	_ "github.com/heroku/x/hmetrics/onload"
+	"github.com/ivarsrb/NoteletServer/app"
+	"github.com/ivarsrb/NoteletServer/logger"
 )
 
 func main() {
-	var err error
-	// TODO: maybe return storage object here and pass on rather
-	// than store it clobaly in storage package
-	err = storage.New(storage.PostgresSQL)
+	var app app.Application
+	err := app.Run()
 	if err != nil {
-		log.Fatal(err)
-	}
-	err = server.Run()
-	if err != nil {
-		log.Fatal(err)
+		logger.Error.Fatal(err)
 	}
 }

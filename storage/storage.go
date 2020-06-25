@@ -5,9 +5,7 @@ package storage
 
 import (
 	"fmt"
-	"os"
 
-	"github.com/ivarsrb/NoteletServer/logger"
 	"github.com/ivarsrb/NoteletServer/notes"
 )
 
@@ -34,8 +32,9 @@ type Storage interface {
 // DB is the global storage instance
 var DB Storage
 
-// New instantiates global storage of the given type
-func New(t Type) error {
+// New instantiates global storage of the given type with given url sting
+// that is interpreted depending on storage type
+func New(t Type, dburl string) error {
 	var err error
 	//var err error
 	switch t {
@@ -45,12 +44,6 @@ func New(t Type) error {
 			return fmt.Errorf("data storage creation fail: %v", err)
 		}
 	case PostgresSQL:
-		// TODO: move env variables to somewhere else
-		dburl := os.Getenv("DATABASE_URL")
-		if dburl == "" {
-			logger.Error.Fatal("$DATABASE_URL must be set")
-		}
-
 		DB, err = NewPostgres(dburl)
 		if err != nil {
 			return fmt.Errorf("data storage creation fail: %v", err)

@@ -16,14 +16,8 @@ import (
 	"github.com/ivarsrb/NoteletServer/logger"
 )
 
-// Run creates and and starts http server
-func Run() error {
-	// TODO: move env variables to somewhere else
-	port := os.Getenv("PORT")
-	if port == "" {
-		logger.Error.Fatal("$PORT must be set")
-	}
-
+// Run creates and and starts http server on a given port
+func Run(port string) error {
 	router := newRouter()
 	server := &http.Server{
 		Addr:           ":" + port,
