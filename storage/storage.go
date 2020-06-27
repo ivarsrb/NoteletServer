@@ -13,10 +13,9 @@ import (
 type Type int
 
 const (
-	// SQLite stores data in SQLite database
-	SQLite Type = iota
 	// PostgresSQL stores data in PostgresSQL database
-	PostgresSQL
+	PostgresSQL Type = iota
+	// Add new storege types here .. and in new() functions
 )
 
 // Storage is an interface for possible databases that could be used.
@@ -36,13 +35,7 @@ var DB Storage
 // that is interpreted depending on storage type
 func New(t Type, dburl string) error {
 	var err error
-	//var err error
 	switch t {
-	case SQLite:
-		DB, err = NewSQLite("./notelet.db")
-		if err != nil {
-			return fmt.Errorf("data storage creation fail: %v", err)
-		}
 	case PostgresSQL:
 		DB, err = NewPostgres(dburl)
 		if err != nil {
