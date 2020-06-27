@@ -31,8 +31,7 @@ func Run(port string) error {
 	// is listening for interrupt signals from OS
 	go func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			// TODO: how to handle error here, return from goroutine or fatal or do nothing but log
-			logger.Error.Println("server: error while listening and serving: ", err)
+			logger.Error.Fatal("server: error while listening and serving: ", err)
 		}
 	}()
 	var err error
