@@ -1,13 +1,12 @@
 package storage
 
 import (
-	// To initialize PostgreSQL driver
 	"database/sql"
 	"fmt"
 
 	"github.com/ivarsrb/NoteletServer/notes"
 
-	// To initialize sqlite3 driver
+	// To initialize PostgreSQL driver
 	_ "github.com/lib/pq"
 )
 
@@ -20,7 +19,6 @@ type PostgresStorage struct {
 // prepANdExec prepares statement and executes it in a single go.
 // In case any error occures it is returned
 func prepAndExec(db *sql.DB, query string) error {
-	// Create index on searchable field
 	stmt, err := db.Prepare(query)
 	if err != nil {
 		return err
@@ -34,7 +32,6 @@ func prepAndExec(db *sql.DB, query string) error {
 
 // createPostgresDB creates and sets up the database
 func createPostgresDB(db *sql.DB) error {
-	//var stmt *sql.Stmt
 	var err error
 	// Create table
 	err = prepAndExec(db, `CREATE TABLE IF NOT EXISTS notes (
@@ -53,7 +50,7 @@ func createPostgresDB(db *sql.DB) error {
 		return err
 	}
 	// Function for storing text-search tokens extracted from notes and tags columns
-	// with assigned priorities
+	// with assigned priorities.
 	// Function to_tsvector() take argument of a dictionary to use when normalizing the words
 	// as lexemes
 	err = prepAndExec(db, `CREATE OR REPLACE FUNCTION search_trigger() RETURNS trigger AS $$
@@ -87,7 +84,7 @@ func createPostgresDB(db *sql.DB) error {
 
 // NewPostgres creates and returns NewPostgreSQL storage object.
 // The database connection is established and database created.
-// name parameter specifies database file name
+// name parameter specifies database url
 func NewPostgres(name string) (*PostgresStorage, error) {
 	var err error
 	stg := PostgresStorage{}
@@ -97,10 +94,10 @@ func NewPostgres(name string) (*PostgresStorage, error) {
 	const driver = "postgres"
 	stg.db, err = sql.Open(driver, name)
 	if err != nil {
-		return nil, fmt.Errorf("PostgreSQL db open fail: %v", err)
+		return nil, fmt.Errorf("PostgreSQL db opening fail: %v", err)
 	}
 	// Actual first connection with the database is established here.
-	// Create storage table by executing a script.
+	// Create database storage, indexes and triggers
 	err = createPostgresDB(stg.db)
 	if err != nil {
 		return nil, fmt.Errorf("PostgreSQL db creation fail: %v", err)

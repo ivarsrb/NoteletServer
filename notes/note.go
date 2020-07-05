@@ -1,3 +1,6 @@
+/*
+Package notes is responsible for basic knowledge of the note type
+*/
 package notes
 
 import "time"

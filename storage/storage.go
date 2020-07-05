@@ -1,5 +1,6 @@
 /*
-Package storage package handles storage initialization and implement storage interface
+Package storage provides data storage manipulation by implementing Storage inerface
+by desired database type
 */
 package storage
 
@@ -13,12 +14,12 @@ import (
 type Type int
 
 const (
-	// PostgresSQL stores data in PostgresSQL database
+	// PostgresSQL specifies the database type
 	PostgresSQL Type = iota
-	// Add new storege types here .. and in new() functions
+	// Add new storege types here .. and in New() function
 )
 
-// Storage is an interface for possible databases that could be used.
+// Storage is an interface for possible database types that could be used.
 // They all should implement this interface.
 type Storage interface {
 	InsertNote(note *notes.Note) error
@@ -31,7 +32,7 @@ type Storage interface {
 // DB is the global storage instance
 var DB Storage
 
-// New instantiates global storage of the given type with given url sting
+// New instantiates global storage of the given type with given url string
 // that is interpreted depending on storage type
 func New(t Type, dburl string) error {
 	var err error

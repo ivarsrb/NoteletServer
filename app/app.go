@@ -1,5 +1,5 @@
 /*
-Package app ties together the application and holds it's state
+Package app ties together the application and stores it's state
 */
 package app
 

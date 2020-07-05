@@ -1,6 +1,6 @@
 /*
-Package server implements setting up web server, defines routing and handles protocol requests.
-Server configuration is read environment variables
+Package server implements setup of the web server, defines routing and handles protocol requests.
+Server configuration is read from env variables
 */
 package server
 
@@ -16,15 +16,17 @@ import (
 	"github.com/ivarsrb/NoteletServer/logger"
 )
 
-// Run creates and and starts http server on a given port
+// Run creates and and starts http server on the given port
 func Run(port string) error {
 	router := newRouter()
+	timeout := 10 * time.Second
+	maxHeaderSize := 1 << 20
 	server := &http.Server{
 		Addr:           ":" + port,
 		Handler:        router,
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
-		MaxHeaderBytes: 1 << 20,
+		ReadTimeout:    timeout,
+		WriteTimeout:   timeout,
+		MaxHeaderBytes: maxHeaderSize,
 		ErrorLog:       logger.Error,
 	}
 	// Initializing the server in a goroutine because graceful shutdown
@@ -57,7 +59,8 @@ func gracefulShutdown(server *http.Server) error {
 	logger.Info.Println("server: shutting down...")
 	// The context is used to inform the server it has 5 seconds to finish
 	// the request it is currently handling
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	timeout := 5 * time.Second
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	if err := server.Shutdown(ctx); err != nil {
 		return err

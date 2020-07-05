@@ -11,7 +11,7 @@ import (
 	"github.com/ivarsrb/NoteletServer/storage"
 )
 
-// getNotes retrieve a list of notes
+// getNotes retrieves a list of notes
 func getNotes(c *gin.Context) {
 	filter := c.DefaultQuery("filter", "")
 	notes, err := storage.DB.SelectNotes(filter)
@@ -23,12 +23,11 @@ func getNotes(c *gin.Context) {
 	c.JSON(http.StatusOK, notes)
 }
 
-// getNote retrieve a note with a requested id from the database and send it back as a json
+// getNote retrieves a note with a requested id from the database and send it back as a json
 func getNote(c *gin.Context) {
 	var id int
 	var err error
-	// Identifier which note to get.
-	// It should be integer
+	// Id should be integer
 	if id, err = strconv.Atoi(c.Param("id")); err != nil {
 		logger.Error.Println("server: 'id' should be an integer type")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ID of an unsupported type"})
@@ -69,12 +68,11 @@ func postNote(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// deleteNote delete a given note
+// deleteNote deletes a given note
 func deleteNote(c *gin.Context) {
 	var id int
 	var err error
-	// Identifier which note to delete.
-	// It should be integer
+	// Id should be integer
 	if id, err = strconv.Atoi(c.Param("id")); err != nil {
 		logger.Error.Println("server: 'id' should be an integer type")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ID of an unsupported type!"})
@@ -93,8 +91,7 @@ func deleteNote(c *gin.Context) {
 func replaceNote(c *gin.Context) {
 	var id int
 	var err error
-	// Identifier which note to update.
-	// It should be integer
+	// Id should be integer
 	if id, err = strconv.Atoi(c.Param("id")); err != nil {
 		logger.Error.Println("server: 'id' should be an integer type")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ID of an unsupported type!"})
@@ -122,8 +119,7 @@ func replaceNote(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// hasJSONHeader determine if header of the gicurrent request
-// is "application/json"
+// hasJSONHeader determine if header of the current request is "application/json"
 func hasJSONHeader(c *gin.Context) bool {
 	contentType := c.Request.Header.Get("Content-type")
 	return contentType == "application/json"

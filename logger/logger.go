@@ -1,5 +1,5 @@
 /*
-Package logger sets up globals variables of custom loggers
+Package logger sets up global variables of custom loggers
 */
 package logger
 
@@ -11,7 +11,6 @@ import (
 var (
 	// Info is used to log information level messages
 	Info *log.Logger
-
 	// Error is used to log error level messages
 	Error *log.Logger
 )
