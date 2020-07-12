@@ -28,6 +28,8 @@ func newRouter() *gin.Engine {
 	router.Use(limits.RequestSizeLimiter(maxBodySize))
 	// Serve frontend static files
 	router.Use(static.Serve("/", static.LocalFile(staticPath, true)))
+	// To test server responsivness
+	router.GET("/ping", ping)
 	// Setup route group for the REST API
 	api := router.Group(apiURL)
 	{

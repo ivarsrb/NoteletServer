@@ -124,3 +124,9 @@ func hasJSONHeader(c *gin.Context) bool {
 	contentType := c.Request.Header.Get("Content-type")
 	return contentType == "application/json"
 }
+
+// ping is used to test server responsivness
+// Should send 'OK' test string and 200 code if server is eachable
+func ping(c *gin.Context) {
+	c.String(200, "OK")
+}
