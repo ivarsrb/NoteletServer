@@ -10,3 +10,5 @@ start:
 	$(BINARY)
 kill:
 	pkill $(BINARY)
+test:
+	go test
