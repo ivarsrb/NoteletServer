@@ -18,3 +18,4 @@ REST Api provides the following services:
 | POST   | /notes      | Add a new note |
 | DELETE | /notes/{id} | Remove a note with the given id
 | PUT | /notes/{id} | Replace a note with the given id
+| GET | /ping | Return 'OK' string if the server is responsive
